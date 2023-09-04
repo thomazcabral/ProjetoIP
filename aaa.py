@@ -33,9 +33,6 @@ while running:
         if evento.type == pygame.QUIT:
             running = False
     
-    texto = fonte.render(f'{timer}', True, preto)
-    recarregando = fonte.render('Recarregando...', True, preto)
-    carregado = fonte.render('Carregado!', True, preto)
     # Obtém o estado das teclas
     keys = pygame.key.get_pressed()
     # Move o retângulo para a direita quando a tecla da seta direita é pressionada
