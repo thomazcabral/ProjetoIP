@@ -5,14 +5,18 @@ import sys
 pygame.init()
 
 # Configurações da janela
-largura = 1880
-altura = 800
+largura = 1000
+altura = 500
 janela = pygame.display.set_mode((largura, altura))
+
 
 # Cores
 branco = (255, 255, 255)
 verde = (0, 255, 0)
 preto = (0, 0, 0)
+amarelo = (255, 255, 0)
+vermelho = (255, 0, 0)
+
 # Posição inicial do retângulo
 x = 100
 y = 100
@@ -23,8 +27,8 @@ altura_retangulo = 50
 
 # Velocidade de movimento do retângulo
 velocidade = 0.4
-timer = 2000
-fonte = pygame.font.Font(None, 36)
+stamina = 1000
+fonte = pygame.font.Font(None, 24)
 
 # Loop principal
 running = True
@@ -32,6 +36,32 @@ while running:
     for evento in pygame.event.get():
         if evento.type == pygame.QUIT:
             running = False
+    
+    janela.fill(branco)
+    
+    pygame.draw.rect(janela, verde, (x, y, largura_retangulo, altura_retangulo))
+    
+    ratio_stamina = stamina / 1000
+    
+    #Barra de vida    
+    pygame.draw.rect(janela, vermelho, (10, 450, 200, 20))
+    pygame.draw.rect(janela, verde, (10, 450, 200, 20))
+    
+    #Barra de stamina
+    pygame.draw.rect(janela, branco, (10, 470, 200, 20))
+    pygame.draw.rect(janela, amarelo, (10, 470, 200 * ratio_stamina, 20))
+    pygame.display.flip()
+    
+    #Colisão com as bordas
+    if x < 0:
+        x = 0
+    if x > largura - largura_retangulo:
+        x = largura - largura_retangulo
+    if y < 0:
+        y = 0
+    if y > altura - altura_retangulo:
+        y = altura - altura_retangulo
+    pygame.display.update()
     
     # Obtém o estado das teclas
     keys = pygame.key.get_pressed()
@@ -49,24 +79,14 @@ while running:
     if not keys[pygame.K_LSHIFT]:
         velocidade = 0.4
     if keys[pygame.K_LCTRL]:
-        if timer >= 0:
-            timer -= 1
+        if stamina >= 1:
+            stamina -= 1
             velocidade = 0.7
-            pygame.display.set_caption(f'{timer}')
     
 
     if not keys[pygame.K_LCTRL]:
-        if timer < 2000:
-            timer += 1
-            pygame.display.set_caption(f'Recarregando... {timer}')
-        else:
-            pygame.display.set_caption('Carregado!')
-
-    # Preenche a janela com a cor de fundo
-    janela.fill(branco)
-
-    # Desenha o retângulo
-    pygame.draw.rect(janela, verde, (x, y, largura_retangulo, altura_retangulo))
+        if stamina < 1000:
+            stamina += 0.65
 
     # Atualiza a tela
     pygame.display.update()
