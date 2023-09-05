@@ -1,14 +1,45 @@
-import pygame
-import sys
+import pygame # biblioteca usada pra rodar o jogo
+import sys # biblioteca usada pra fechar o programa
 
-# Inicializa Pygame
-pygame.init()
+class Retangulo: # mesma lógica do que já tava feito
+    def __init__(self, x, y, largura, altura, velocidade, stamina):
+        self.x = x
+        self.y = y
+        self.largura = largura
+        self.altura = altura
+        self.velocidade = velocidade
+        self.stamina = stamina
+
+    def move(self, keys):
+        if keys[pygame.K_RIGHT]:
+            self.x += self.velocidade
+        elif keys[pygame.K_LEFT]:
+            self.x -= self.velocidade
+        elif keys[pygame.K_UP]:
+            self.y -= self.velocidade
+        elif keys[pygame.K_DOWN]:
+            self.y += self.velocidade
+        if keys[pygame.K_LSHIFT]:
+            self.velocidade = 0.2
+        if not keys[pygame.K_LSHIFT]:
+            self.velocidade = 0.4
+        if keys[pygame.K_LCTRL]:
+            if self.stamina >= 1:
+                self.stamina -= 1
+                self.velocidade = 0.7
+        if not keys[pygame.K_LCTRL]:
+            if self.stamina < 1000:
+                self.stamina += 0.65
+
+    def desenha(self, janela):
+        pygame.draw.rect(janela, verde, (self.x, self.y, self.largura, self.altura))
+
+pygame.init() # Inicializa Pygame
 
 # Configurações da janela
 largura = 1000
 altura = 500
 janela = pygame.display.set_mode((largura, altura))
-
 
 # Cores
 branco = (255, 255, 255)
@@ -17,18 +48,8 @@ preto = (0, 0, 0)
 amarelo = (255, 255, 0)
 vermelho = (255, 0, 0)
 
-# Posição inicial do retângulo
-x = 100
-y = 100
-
-# Largura e altura do retângulo
-largura_retangulo = 50
-altura_retangulo = 50
-
-# Velocidade de movimento do retângulo
-velocidade = 0.4
-stamina = 1000
-fonte = pygame.font.Font(None, 24)
+# Cria o retângulo
+retangulo = Retangulo(100, 100, 50, 50, 0.4, 1000) # x, y, largura, altura, velocidade e stamina
 
 # Loop principal
 running = True
@@ -36,60 +57,36 @@ while running:
     for evento in pygame.event.get():
         if evento.type == pygame.QUIT:
             running = False
-    
+
     janela.fill(branco)
-    
-    pygame.draw.rect(janela, verde, (x, y, largura_retangulo, altura_retangulo))
-    
-    ratio_stamina = stamina / 1000
-    
-    #Barra de vida    
+
+    retangulo.desenha(janela)
+
+    ratio_stamina = retangulo.stamina / 1000
+
+    # Barra de vida
     pygame.draw.rect(janela, vermelho, (10, 450, 200, 20))
     pygame.draw.rect(janela, verde, (10, 450, 200, 20))
-    
-    #Barra de stamina
+
+    # Barra de stamina
     pygame.draw.rect(janela, branco, (10, 470, 200, 20))
     pygame.draw.rect(janela, amarelo, (10, 470, 200 * ratio_stamina, 20))
     pygame.display.flip()
-    
-    #Colisão com as bordas
-    if x < 0:
-        x = 0
-    if x > largura - largura_retangulo:
-        x = largura - largura_retangulo
-    if y < 0:
-        y = 0
-    if y > altura - altura_retangulo:
-        y = altura - altura_retangulo
-    pygame.display.update()
-    
-    # Obtém o estado das teclas
-    keys = pygame.key.get_pressed()
-    # Move o retângulo para a direita quando a tecla da seta direita é pressionada
-    if keys[pygame.K_RIGHT]:
-        x += velocidade
-    elif keys[pygame.K_LEFT]:
-        x -= velocidade
-    elif keys[pygame.K_UP]:
-        y -= velocidade
-    elif keys[pygame.K_DOWN]:
-        y += velocidade
-    if keys[pygame.K_LSHIFT]:
-        velocidade = 0.2
-    if not keys[pygame.K_LSHIFT]:
-        velocidade = 0.4
-    if keys[pygame.K_LCTRL]:
-        if stamina >= 1:
-            stamina -= 1
-            velocidade = 0.7
-    
 
-    if not keys[pygame.K_LCTRL]:
-        if stamina < 1000:
-            stamina += 0.65
-
-    # Atualiza a tela
+    # Colisão com as bordas
+    if retangulo.x < 0:
+        retangulo.x = 0
+    if retangulo.x > largura - retangulo.largura:
+        retangulo.x = largura - retangulo.largura
+    if retangulo.y < 0:
+        retangulo.y = 0
+    if retangulo.y > altura - retangulo.altura:
+        retangulo.y = altura - retangulo.altura
     pygame.display.update()
+
+    retangulo.move(pygame.key.get_pressed())
+
+    pygame.display.update() # Atualiza a tela
 
 # Encerra Pygame
 pygame.quit()
