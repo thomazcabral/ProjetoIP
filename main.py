@@ -91,6 +91,10 @@ preto = (0, 0, 0)
 amarelo = (255, 255, 0)
 vermelho = (255, 0, 0)
 
+fonte_timer = pygame.font.Font(None, 36)
+duracao_timer = 60 #em segundos
+comeco_timer = time.time() #início do timer
+
 # Cria o retângulo
 retangulo = Retangulo(100, 100, 0.7, 1000) # x, y, largura, altura, velocidade e stamina
 
@@ -102,21 +106,23 @@ while running:
         if evento.type == pygame.QUIT:
             running = False
     
-    janela.fill(branco)
+    exibir_janela = janela.copy() #copia a janela e evita com que algo fique "piscando" na tela devido a atualizações constantes
 
-    retangulo.desenha(janela)
+    exibir_janela.fill(branco)
+
+    retangulo.desenha(exibir_janela)
 
     ratio_stamina = retangulo.stamina / 1000
 
     # Barra de vida
     width = pygame.display.get_surface().get_width()
     height = pygame.display.get_surface().get_height()
-    pygame.draw.rect(janela, vermelho, (width / (1280/10), height / (720/670), width / (1280/200), height / (720/20)))
-    pygame.draw.rect(janela, verde, (width / (1280/10), height / (720/670), width / (1280/200), height / (720/20)))
+    pygame.draw.rect(exibir_janela, vermelho, (width / (1280/10), height / (720/670), width / (1280/200), height / (720/20)))
+    pygame.draw.rect(exibir_janela, verde, (width / (1280/10), height / (720/670), width / (1280/200), height / (720/20)))
 
     # Barra de stamina
-    pygame.draw.rect(janela, branco, (width / (1280/10), height / (720/690), width / (1280/200), height / (720/20)))
-    pygame.draw.rect(janela, amarelo, (width / (1280/10), height / (720/690), width * ratio_stamina / (1280/200), height / (720/20)))
+    pygame.draw.rect(exibir_janela, branco, (width / (1280/10), height / (720/690), width / (1280/200), height / (720/20)))
+    pygame.draw.rect(exibir_janela, amarelo, (width / (1280/10), height / (720/690), width * ratio_stamina / (1280/200), height / (720/20)))
     pygame.display.flip()
 
     # Colisão com as bordas
@@ -131,6 +137,15 @@ while running:
     pygame.display.update()
 
     retangulo.move(pygame.key.get_pressed())
+
+    tempo_atual = time.time()
+    tempo_passado = tempo_atual - comeco_timer
+    tempo_restante = max(0, duracao_timer - tempo_passado) #evite com que o timer dê errado quando acabe
+    minutos, segundos = divmod(int(tempo_restante), 60) #faz a divisão correta entre minutos e segundos
+    texto_timer = fonte_timer.render(f'Tempo: {minutos:02d}:{segundos:02d}', True, (0, 0, 0)) #texto, situação de aparecimento, cor
+    exibir_janela.blit(texto_timer, (largura - texto_timer.get_width() - 15, altura - 40))
+
+    janela.blit(exibir_janela, (0,0)) #atualiza o timer e as barras corretamente
 
     pygame.display.update()
 
