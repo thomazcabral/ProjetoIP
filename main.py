@@ -1,7 +1,8 @@
 import pygame # biblioteca usada pra rodar o jogo
 import sys # biblioteca usada pra fechar o programa
+import time #biblioteca usada para o timer funcionar
 
-class Retangulo: # mesma lógica do que já tava feito
+class Retangulo:
     def __init__(self, x, y, largura, altura, velocidade, stamina):
         self.x = x
         self.y = y
@@ -11,14 +12,44 @@ class Retangulo: # mesma lógica do que já tava feito
         self.stamina = stamina
 
     def move(self, keys):
+        #método usado pra conferir qual tecla foi usada mais recentemente
+        setas = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0} # Status de movimento inicial do retângulo (parado)
         if keys[pygame.K_RIGHT]:
-            self.x += self.velocidade
-        elif keys[pygame.K_LEFT]:
-            self.x -= self.velocidade
-        elif keys[pygame.K_UP]:
-            self.y -= self.velocidade
-        elif keys[pygame.K_DOWN]:
-            self.y += self.velocidade
+            setas['RIGHT'] += 1
+        else:
+            setas['RIGHT'] = 0
+        if keys[pygame.K_LEFT]:
+            setas['LEFT'] += 1
+        else:
+            setas['LEFT'] = 0
+        if keys[pygame.K_UP]:
+            setas['UP'] += 1
+        else:
+            setas['UP'] = 0
+        if keys[pygame.K_DOWN]:
+            setas['DOWN'] += 1
+        else:
+            setas['DOWN'] = 0
+        
+        vezes = False
+        escolhida = False
+        for seta in setas.keys():
+            if setas[seta] > 0:
+                if not vezes or setas[seta] <= vezes:
+                    vezes = setas[seta]
+                    escolhida = seta
+        
+        if escolhida:
+            if escolhida == 'RIGHT':
+                self.x += self.velocidade
+            elif escolhida == 'LEFT':
+                self.x -= self.velocidade
+            elif escolhida == 'UP':
+                self.y -= self.velocidade
+            elif escolhida == 'DOWN':
+                self.y += self.velocidade
+
+            
         if keys[pygame.K_LSHIFT]:
             self.velocidade = 0.2
         if not keys[pygame.K_LSHIFT]:
@@ -34,7 +65,7 @@ class Retangulo: # mesma lógica do que já tava feito
     def desenha(self, janela):
         pygame.draw.rect(janela, verde, (self.x, self.y, self.largura, self.altura))
 
-pygame.init() # Inicializa Pygame
+pygame.init()
 
 # Configurações da janela
 largura = 1000
@@ -86,7 +117,7 @@ while running:
 
     retangulo.move(pygame.key.get_pressed())
 
-    pygame.display.update() # Atualiza a tela
+    pygame.display.update()
 
 # Encerra Pygame
 pygame.quit()
