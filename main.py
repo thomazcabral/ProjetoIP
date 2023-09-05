@@ -1,33 +1,34 @@
-import pygame #biblioteca usada pra criar e rodar o jogo
-import sys #biblioteca usada para fechar o programa
-import time #biblioteca usada para o timer funcionar
+import pygame
+import sys
 
-pygame.init() #Inicializa Pygame
+# Inicializa Pygame
+pygame.init()
 
 # Configurações da janela
-largura = 1880 
-altura = 800 
+largura = 1000
+altura = 500
 janela = pygame.display.set_mode((largura, altura))
+
 
 # Cores
 branco = (255, 255, 255)
 verde = (0, 255, 0)
+preto = (0, 0, 0)
+amarelo = (255, 255, 0)
+vermelho = (255, 0, 0)
+
 # Posição inicial do retângulo
 x = 100
 y = 100
 
+# Largura e altura do retângulo
 largura_retangulo = 50
 altura_retangulo = 50
 
 # Velocidade de movimento do retângulo
 velocidade = 0.4
-boost = 2000
-fonte = pygame.font.Font(None, 36) # definindo as fontes
-fonte_boost = pygame.font.Font(None, 36)
-fonte_timer = pygame.font.Font(None, 36)
-
-duracao_timer = 60 #em segundos
-comeco_timer = time.time()
+stamina = 1000
+fonte = pygame.font.Font(None, 24)
 
 # Loop principal
 running = True
@@ -36,8 +37,35 @@ while running:
         if evento.type == pygame.QUIT:
             running = False
     
-    keys = pygame.key.get_pressed() # Obtém o estado das teclas
-    # Move o retângulo
+    janela.fill(branco)
+    
+    pygame.draw.rect(janela, verde, (x, y, largura_retangulo, altura_retangulo))
+    
+    ratio_stamina = stamina / 1000
+    
+    #Barra de vida    
+    pygame.draw.rect(janela, vermelho, (10, 450, 200, 20))
+    pygame.draw.rect(janela, verde, (10, 450, 200, 20))
+    
+    #Barra de stamina
+    pygame.draw.rect(janela, branco, (10, 470, 200, 20))
+    pygame.draw.rect(janela, amarelo, (10, 470, 200 * ratio_stamina, 20))
+    pygame.display.flip()
+    
+    #Colisão com as bordas
+    if x < 0:
+        x = 0
+    if x > largura - largura_retangulo:
+        x = largura - largura_retangulo
+    if y < 0:
+        y = 0
+    if y > altura - altura_retangulo:
+        y = altura - altura_retangulo
+    pygame.display.update()
+    
+    # Obtém o estado das teclas
+    keys = pygame.key.get_pressed()
+    # Move o retângulo para a direita quando a tecla da seta direita é pressionada
     if keys[pygame.K_RIGHT]:
         x += velocidade
     elif keys[pygame.K_LEFT]:
@@ -51,33 +79,17 @@ while running:
     if not keys[pygame.K_LSHIFT]:
         velocidade = 0.4
     if keys[pygame.K_LCTRL]:
-        if boost >= 0:
-            boost -= 1
+        if stamina >= 1:
+            stamina -= 1
             velocidade = 0.7
     
 
-    if not keys[pygame.K_LCTRL]: #define o estado do boost dele
-        if boost < 2000:
-            boost += 1
-            situacao = "Recarregando..."
-        else:
-            situacao = "Carregado!"
+    if not keys[pygame.K_LCTRL]:
+        if stamina < 1000:
+            stamina += 0.65
 
-    janela.fill(branco) # Preenche a janela com a cor de fundo
-
-    pygame.draw.rect(janela, verde, (x, y, largura_retangulo, altura_retangulo)) # Desenha o retângulo
-
-    texto_boost = fonte_boost.render(f'Boost: {boost}  {situacao}', True, (0, 0, 0)) #mostrando o boost
-    janela.blit(texto_boost, (10, altura - 40)) #setando a localização do timer no canto inferior esquerdo
-
-    tempo_atual = time.time() #começando o timer
-    tempo_passado = tempo_atual - comeco_timer
-    tempo_restante = max(duracao_timer - tempo_passado, 0) #faz com que não dê merda quando o tempo estoura
-    minutos, segundos = divmod(int(tempo_restante), 60) #faz a divisão correta dos minutos e dos segundos no timer
-    texto_timer = fonte_timer.render(f'Tempo: {minutos:02d}:{segundos:02d}', True, (0, 0, 0)) #mostrando o timer
-    janela.blit(texto_timer, (largura - texto_timer.get_width() - 15, altura - 40)) #calculando a posição perfeita para o timer ficar no canto inferior direito da tela
-
-    pygame.display.update() #atualiza a tela
+    # Atualiza a tela
+    pygame.display.update()
 
 # Encerra Pygame
 pygame.quit()
