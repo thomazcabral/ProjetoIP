@@ -1,7 +1,7 @@
-import pygame # biblioteca usada pra rodar o jogo
-import sys # biblioteca usada pra fechar o programa
-import time #biblioteca usada para o timer funcionar
-import random #biblioteca usada para randomizar números
+import pygame
+import sys
+import time 
+import random
 
 class Inimigos:
     # Responsável por cada animal vivo
@@ -35,6 +35,22 @@ class Inimigos:
         global contador
         contador += 1
         Inimigos.inimigos_vivos.remove(self)
+    
+    def move(self, retangulo):
+        distancia_x = retangulo.x - self.x
+        distancia_y = retangulo.y - self.y
+        if ((distancia_x)**2 + (distancia_y)**2)**(1/2) <= 300:
+            if abs(distancia_x) > abs(distancia_y):
+                if distancia_x < 0:
+                    self.x += self.velocidade
+                else:
+                    self.x -= self.velocidade
+            else:
+                if distancia_y < 0:
+                    self.y += self.velocidade
+                else:
+                    self.y -= self.velocidade
+        
 class Retangulo:
     def __init__(self, x, y, velocidade, stamina):
         w = pygame.display.get_surface().get_width()
@@ -46,6 +62,7 @@ class Retangulo:
         self.velocidade = velocidade
         self.stamina = stamina
         self.cansaco = 0
+        self.img = pygame.image.load('mago_down.png')
 
     def move(self, keys):
         global janela
@@ -83,14 +100,19 @@ class Retangulo:
 
         if escolhida:
             if escolhida == 'RIGHT':
+                self.img = pygame.image.load('mago_right.png')
                 self.x += self.velocidade
             elif escolhida == 'LEFT':
+                self.img = pygame.image.load('mago_left.png')
                 self.x -= self.velocidade
             elif escolhida == 'UP':
+                self.img = pygame.image.load('mago_up.png')
                 self.y -= self.velocidade
             elif escolhida == 'DOWN':
+                self.img = pygame.image.load('mago_down.png')
                 self.y += self.velocidade
-
+            else:
+                self.img = pygame.image.load('mago_down.png')
             
         if keys[pygame.K_LSHIFT]:
             self.velocidade = 0.4
@@ -108,13 +130,17 @@ class Retangulo:
                self.stamina += 0.65
         if self.cansaco > 0:
             self.cansaco -= 1
-
+            
     def desenhar_mago(self, janela):
         global width
         global height
-        self.largura = width / 25.6
-        self.altura = height / 14.4
-        pygame.draw.rect(janela, verde, (self.x, self.y, self.largura, self.altura)) #tá errado
+        escala = 1/4
+        imagem = pygame.image.load('mago_down.png')
+        w, h = imagem.get_size()
+        self.largura = w * escala
+        self.altura = h * escala
+        redimensionar = pygame.transform.smoothscale(self.img, ((w*escala), (h*escala)))
+        janela.blit(redimensionar, (self.x, self.y))
 
 
 pygame.init()
@@ -168,6 +194,8 @@ def colisao(player, objeto):
 setas = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0} # Status de movimento inicial do retângulo (parado)
 # Loop principal
 running = True
+
+
 while running:
     
     width = pygame.display.get_surface().get_width()
@@ -191,6 +219,7 @@ while running:
         inimigos_vivos.append(i)
     for inimigo in Inimigos.inimigos_vivos:
         inimigo.desenhar_inimigo(exibir_janela)
+        
 
 
     ratio_stamina = retangulo.stamina / 1000
@@ -198,19 +227,23 @@ while running:
     # Barra de vida
     width = pygame.display.get_surface().get_width()
     height = pygame.display.get_surface().get_height()
-    pygame.draw.rect(exibir_janela, vermelho, (width / (1280/10), height / (720/670), width / (1280/200), height / (720/20)))
-    pygame.draw.rect(exibir_janela, verde, (width / (1280/10), height / (720/670), width / (1280/200), height / (720/20)))
+    pygame.draw.rect(exibir_janela, vermelho, (width / (largura/10), height / (altura/(altura-50)), width / (largura/200), height / (altura/20)))
+    pygame.draw.rect(exibir_janela, verde, (width / (largura/10), height / (altura/(altura-50)), width / (largura/200), height / (altura/20)))
 
     # Barra de stamina
-    pygame.draw.rect(exibir_janela, branco, (width / (1280/10), height / (720/690), width / (1280/200), height / (720/20)))
-    pygame.draw.rect(exibir_janela, amarelo, (width / (1280/10), height / (720/690), width * ratio_stamina / (1280/200), height / (720/20)))
+    pygame.draw.rect(exibir_janela, branco, (width / (largura/10), height / (altura/(altura-30)), width / (largura/200), height / (altura/20)))
+    pygame.draw.rect(exibir_janela, amarelo, (width / (largura/10), height / (altura/(altura-30)), width * ratio_stamina / (largura/200), height / (altura/20)))
     pygame.display.flip()
 
+    #movimentação dos inimigos
+    for inimigo in Inimigos.inimigos_vivos:
+        inimigo.move(retangulo)
     # Colisão com as bordas
     retangulo = borda(retangulo)
     for inimigo in Inimigos.inimigos_vivos: 
         inimigo = borda(inimigo)
         inimigo = colisao(retangulo, inimigo)
+
 
          
     pygame.display.update()
