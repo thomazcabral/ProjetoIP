@@ -45,6 +45,7 @@ class Retangulo:
         self.altura = h / 14.4
         self.velocidade = velocidade
         self.stamina = stamina
+        self.cansaco = 0
 
     def move(self, keys):
         global janela
@@ -74,7 +75,6 @@ class Retangulo:
                 if not vezes or setas[seta] <= vezes:
                     vezes = setas[seta]
                     escolhida = seta
-        print(setas)
         
         if keys[pygame.K_F11]:
             janela = pygame.display.set_mode((largura, altura), pygame.FULLSCREEN)
@@ -97,12 +97,17 @@ class Retangulo:
         if not keys[pygame.K_LSHIFT]:
             self.velocidade = 0.7
         if keys[pygame.K_LCTRL] and escolhida:
-            if self.stamina >= 1:
+            if self.stamina >= 1 and self.cansaco == 0:
                 self.stamina -= 1
                 self.velocidade = 1.1
-        else:
-            if self.stamina < 1000:
+                if self.stamina <= 20:
+                   self.cansaco = 500
+            elif self.cansaco >= 0:
                 self.stamina += 0.65
+        elif self.stamina < 1000:
+               self.stamina += 0.65
+        if self.cansaco > 0:
+            self.cansaco -= 1
 
     def desenhar_mago(self, janela):
         global width
@@ -165,7 +170,6 @@ setas = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0} # Status de movimento inicia
 running = True
 while running:
     
-    print(contador)
     width = pygame.display.get_surface().get_width()
     height = pygame.display.get_surface().get_height()
 
@@ -180,7 +184,7 @@ while running:
     retangulo.desenhar_mago(exibir_janela)
     
     # há uma pequena chance de surgir um animal cada vez que o loop roda
-    chance = random.randrange(1,300)
+    chance = random.randrange(1,500)
     if chance == 1:
         locals()['inimigo' + str(i)] = Inimigos(0.5)
         locals()['inimigo' + str(i)].spawnar(retangulo)
