@@ -4,22 +4,25 @@ import time #biblioteca usada para o timer funcionar
 import random #biblioteca usada para randomizar números
 
 class Inimigos:
+    # Responsável por cada animal vivo
+    inimigos_vivos =[]
+
     def __init__(self, velocidade):
         w = pygame.display.get_surface().get_width()
         h = pygame.display.get_surface().get_height()
         self.largura = w / (25.6 * 2)
         self.altura = h / (14.4 * 2)
         self.velocidade = velocidade
-        self.contador = 0
+        Inimigos.inimigos_vivos.append(self)
 
-    def spawnar(self):
-        global retangulo	
+    def spawnar(self, retangulo):
         w = pygame.display.get_surface().get_width()	
         h = pygame.display.get_surface().get_height()	
         escolher = False	
         while not escolher:	
             valorx = random.randrange(0, w)	
             valory = random.randrange(0, h)	
+            # Só irão nascer animais em um raio maior que 300 px
             if (abs(retangulo.x - valorx) ** 2 + abs(retangulo.y - valory)** 2) ** (1/2) >= 300:	
                 self.x = valorx	
                 self.y = valory	
@@ -28,7 +31,10 @@ class Inimigos:
     def desenhar_inimigo(self, janela):
         pygame.draw.rect(janela, vermelho, (self.x, self.y, self.largura, self.altura))
         
-        
+    def morte(self):
+        global contador
+        contador += 1
+        Inimigos.inimigos_vivos.remove(self)
 class Retangulo:
     def __init__(self, x, y, velocidade, stamina):
         w = pygame.display.get_surface().get_width()
@@ -99,8 +105,8 @@ class Retangulo:
                 self.stamina += 0.65
 
     def desenhar_mago(self, janela):
-        width = pygame.display.get_surface().get_width()
-        height = pygame.display.get_surface().get_height()
+        global width
+        global height
         self.largura = width / 25.6
         self.altura = height / 14.4
         pygame.draw.rect(janela, verde, (self.x, self.y, self.largura, self.altura)) #tá errado
@@ -120,17 +126,19 @@ preto = (0, 0, 0)
 amarelo = (255, 255, 0)
 vermelho = (255, 0, 0)
 
-fonte_timer = pygame.font.Font(None, 36)
+fonte_timer_e_contador = pygame.font.Font(None, 36)
 duracao_timer = 60 #em segundos
 comeco_timer = time.time() #início do timer
 
 # Cria o retângulo
 retangulo = Retangulo(100, 100, 0.7, 1000) # x, y, largura, altura, velocidade e stamina
 
-# Spawnar os animais
+# Spawnar os animais, foi escolhido 3 mas pode ser arbitrário
+inimigos_vivos = []
+contador = 0
 for i in range(3):
   locals()['inimigo' + str(i)] = Inimigos(0.5)
-  locals()['inimigo' + str(i)].spawnar()
+  locals()['inimigo' + str(i)].spawnar(retangulo)
 
 # Colisão com as bordas
 def borda(variavel):
@@ -148,19 +156,19 @@ def borda(variavel):
 
 # Colisão do player com os animais
 def colisao(player, objeto):
-    global width
-    global height
-    #não está funcionando corretamente por enquanto
-    if (player.x <= (objeto.x + objeto.largura) and (player.x + player.largura) >= objeto.largura) or (player.x >= (objeto.largura + objeto.x) and (player.largura + player.x) <= objeto.x):
-        if (player.y <= (objeto.y + objeto.altura) and (player.y + player.altura) >= objeto.altura) or (player.y >= (objeto.altura + objeto.y) and (player.altura + player.y) <= objeto.y):
-            objeto.spawnar()
-            objeto.contador += 1
-    return objeto
+    if player.x + player.largura >= objeto.x >= player.x or player.x + player.largura >= objeto.x + objeto.largura >= player.x:
+        if player.y + player.altura >= objeto.y >= player.y or player.y + player.altura >= objeto.y + objeto.altura >= player.y:
+            objeto.morte()
 
 setas = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0} # Status de movimento inicial do retângulo (parado)
 # Loop principal
 running = True
 while running:
+    
+    print(contador)
+    width = pygame.display.get_surface().get_width()
+    height = pygame.display.get_surface().get_height()
+
     for evento in pygame.event.get():
         if evento.type == pygame.QUIT:
             running = False
@@ -170,9 +178,16 @@ while running:
     exibir_janela.fill(branco)
 
     retangulo.desenhar_mago(exibir_janela)
+    
+    # há uma pequena chance de surgir um animal cada vez que o loop roda
+    chance = random.randrange(1,300)
+    if chance == 1:
+        locals()['inimigo' + str(i)] = Inimigos(0.5)
+        locals()['inimigo' + str(i)].spawnar(retangulo)
+        inimigos_vivos.append(i)
+    for inimigo in Inimigos.inimigos_vivos:
+        inimigo.desenhar_inimigo(exibir_janela)
 
-    for i in range(3):
-        locals()['inimigo' + str(i)].desenhar_inimigo(exibir_janela)
 
     ratio_stamina = retangulo.stamina / 1000
 
@@ -189,10 +204,11 @@ while running:
 
     # Colisão com as bordas
     retangulo = borda(retangulo)
-    for i in range(3): 
-        vez = locals()['inimigo' + str(i)]
-        vez = borda(vez)
-        vez = colisao(retangulo, vez)
+    for inimigo in Inimigos.inimigos_vivos: 
+        inimigo = borda(inimigo)
+        inimigo = colisao(retangulo, inimigo)
+
+         
     pygame.display.update()
 
     retangulo.move(pygame.key.get_pressed())
@@ -201,8 +217,11 @@ while running:
     tempo_passado = tempo_atual - comeco_timer
     tempo_restante = max(0, duracao_timer - tempo_passado) #evite com que o timer dê errado quando acabe
     minutos, segundos = divmod(int(tempo_restante), 60) #faz a divisão correta entre minutos e segundos
-    texto_timer = fonte_timer.render(f'Tempo: {minutos:02d}:{segundos:02d}', True, (0, 0, 0)) #texto, situação de aparecimento, cor
+    texto_timer = fonte_timer_e_contador.render(f'Tempo: {minutos:02d}:{segundos:02d}', True, (0, 0, 0)) #texto, situação de aparecimento, cor
     exibir_janela.blit(texto_timer, (largura - texto_timer.get_width() - 15, altura - 40))
+
+    texto_contador = fonte_timer_e_contador.render(f'Pontuação: {contador}', True, (0, 0, 0))
+    exibir_janela.blit(texto_contador, (largura - texto_timer.get_width() - 200, altura - 40))
 
     janela.blit(exibir_janela, (0,0)) #atualiza o timer e as barras corretamente
 
