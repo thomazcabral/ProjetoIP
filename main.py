@@ -41,7 +41,7 @@ class Inimigos:
         contador += 1
         Inimigos.inimigos_vivos.remove(self)
     
-    def move(self, retangulo):
+    def move(self, retangulo, variacao_tempo):
         global velocidade_devagar
         global velocidade_rapida
         raio_alerta = retangulo.raio
@@ -51,18 +51,24 @@ class Inimigos:
             raio_alerta = raio_alerta / 1.5
         distancia_x = retangulo.x - self.x
         distancia_y = retangulo.y - self.y
+        antigo_x = self.x
+        antigo_y = self.y
         if ((distancia_x)**2 + (distancia_y)**2)**(1/2) <= raio_alerta:
             if abs(distancia_x) > abs(distancia_y):
                 if distancia_x < 0:
-                    self.x += self.velocidade
+                    self.x += self.velocidade * variacao_tempo
                 else:
-                    self.x -= self.velocidade
+                    self.x -= self.velocidade * variacao_tempo
             else:
                 if distancia_y < 0:
-                    self.y += self.velocidade
+                    self.y += self.velocidade * variacao_tempo
                 else:
-                    self.y -= self.velocidade
-        
+                    self.y -= self.velocidade * variacao_tempo
+        for inimigo in Inimigos.inimigos_vivos:
+                if inimigo != self and (abs(inimigo.x - self.x) < (inimigo.largura + self.largura) / 2 and abs(inimigo.y - self.y) < (inimigo.altura + self.altura) / 2):
+                    self.x = antigo_x
+                    self.y = antigo_y
+
 class Retangulo:
     def __init__(self, x, y, velocidade, stamina):
         w = pygame.display.get_surface().get_width()
@@ -77,10 +83,12 @@ class Retangulo:
         self.img = pygame.image.load('mago_down.png')
         self.raio = 300
 
-    def move(self, keys):
+    def move(self, keys, variacao_tempo):
         global janela
         #método usado pra conferir qual tecla foi usada mais recentemente
         global setas
+        global stamina_padrao
+        global tela_cheia
         if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
             setas['RIGHT'] += 1
         else:
@@ -106,41 +114,43 @@ class Retangulo:
                     vezes = setas[seta]
                     escolhida = seta
         
-        if keys[pygame.K_F11]:
+        if keys[pygame.K_F11] and not tela_cheia:
             janela = pygame.display.set_mode((largura, altura), pygame.FULLSCREEN)
-        if keys[pygame.K_ESCAPE]:
+            tela_cheia = True
+        if keys[pygame.K_ESCAPE] and tela_cheia:
             janela = pygame.display.set_mode((largura, altura))
+            tela_cheia = False
 
         if escolhida:
             if escolhida == 'RIGHT':
                 self.img = pygame.image.load('mago_right.png')
-                self.x += self.velocidade
+                self.x += self.velocidade * variacao_tempo
             elif escolhida == 'LEFT':
                 self.img = pygame.image.load('mago_left.png')
-                self.x -= self.velocidade
+                self.x -= self.velocidade * variacao_tempo
             elif escolhida == 'UP':
                 self.img = pygame.image.load('mago_up.png')
-                self.y -= self.velocidade
+                self.y -= self.velocidade * variacao_tempo
             elif escolhida == 'DOWN':
                 self.img = pygame.image.load('mago_down.png')
-                self.y += self.velocidade
+                self.y += self.velocidade * variacao_tempo
             else:
                 self.img = pygame.image.load('mago_down.png')
             
         if keys[pygame.K_LSHIFT]:
-            self.velocidade = 0.4
+            self.velocidade = 0.05
         if not keys[pygame.K_LSHIFT]:
-            self.velocidade = 0.7
+            self.velocidade = 0.1
         if keys[pygame.K_LCTRL] and escolhida:
             if self.stamina >= 1 and self.cansaco == 0:
-                self.stamina -= 1
-                self.velocidade = 1.1
+                self.stamina -= 5
+                self.velocidade = 0.15
                 if self.stamina <= 20:
-                   self.cansaco = 500
+                   self.cansaco = 200
             elif self.cansaco >= 0:
                 self.stamina += 0.65
-        elif self.stamina < 1000:
-               self.stamina += 0.65
+        elif self.stamina < stamina_padrao:
+               self.stamina += 1
         if self.cansaco > 0:
             self.cansaco -= 1
             
@@ -162,6 +172,7 @@ pygame.init()
 largura = 1280
 altura = 720
 janela = pygame.display.set_mode((largura, altura))
+tela_cheia = False
 
 # Cores
 branco = (255, 255, 255)
@@ -173,12 +184,13 @@ vermelho = (255, 0, 0)
 fonte_timer_e_contador = pygame.font.Font(None, 36)
 duracao_timer = 60 #em segundos
 comeco_timer = time.time() #início do timer
+clock = pygame.time.Clock()
 
-velocidade_devagar = 0.4
-velocidade_padrao = 0.7
-velocidade_rapida = 1.1
+velocidade_devagar = 0.05
+velocidade_padrao = 0.1
+velocidade_rapida = 0.15
 
-stamina_padrao = 1000
+stamina_padrao = 500
 
 ponto_inicial = (100, 100)
 # Cria o retângulo
@@ -218,6 +230,9 @@ running = True
 
 while running:
     
+    # A movimentação é em função do tempo, se rodar muito ciclos ele para e volta dps
+    variacao_tempo = clock.tick(30)
+
     width = pygame.display.get_surface().get_width()
     height = pygame.display.get_surface().get_height()
 
@@ -256,7 +271,7 @@ while running:
 
     #movimentação dos inimigos
     for inimigo in Inimigos.inimigos_vivos:
-        inimigo.move(retangulo)
+        inimigo.move(retangulo, variacao_tempo)
     # Colisão com as bordas
     retangulo = borda(retangulo)
     for inimigo in Inimigos.inimigos_vivos: 
@@ -267,7 +282,7 @@ while running:
          
     pygame.display.update()
 
-    retangulo.move(pygame.key.get_pressed())
+    retangulo.move(pygame.key.get_pressed(), variacao_tempo)
 
     tempo_atual = time.time()
     tempo_passado = tempo_atual - comeco_timer
