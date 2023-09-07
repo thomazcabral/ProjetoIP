@@ -13,20 +13,25 @@ class Inimigos:
         self.largura = w / (25.6 * 2)
         self.altura = h / (14.4 * 2)
         self.velocidade = velocidade
+        self.raio = 100
         Inimigos.inimigos_vivos.append(self)
 
     def spawnar(self, retangulo):
         w = pygame.display.get_surface().get_width()	
         h = pygame.display.get_surface().get_height()	
-        escolher = False	
+        escolher = False
+ 	
         while not escolher:	
             valorx = random.randrange(0, w)	
-            valory = random.randrange(0, h)	
+            valory = random.randrange(0, h)
             # Só irão nascer animais em um raio maior que 300 px
-            if (abs(retangulo.x - valorx) ** 2 + abs(retangulo.y - valory)** 2) ** (1/2) >= 300:	
+            if ((retangulo.x + (retangulo.largura / 2) - valorx) ** 2 + (retangulo.y + (retangulo.altura / 2) - valory)** 2) ** (1/2) >= retangulo.raio:	
                 self.x = valorx	
                 self.y = valory	
                 escolher = True
+            for inimigo in Inimigos.inimigos_vivos:
+                if inimigo != self and ((inimigo.x + (inimigo.largura / 2) - valorx) ** 2 + (inimigo.y + (inimigo.altura / 2) - valory)** 2) ** (1/2) < inimigo.raio:
+                    escolher = False	
 
     def desenhar_inimigo(self, janela):
         pygame.draw.rect(janela, vermelho, (self.x, self.y, self.largura, self.altura))
@@ -37,9 +42,16 @@ class Inimigos:
         Inimigos.inimigos_vivos.remove(self)
     
     def move(self, retangulo):
+        global velocidade_devagar
+        global velocidade_rapida
+        raio_alerta = retangulo.raio
+        if retangulo.velocidade == velocidade_rapida:
+            raio_alerta = raio_alerta * 1.5
+        elif retangulo.velocidade == velocidade_devagar:
+            raio_alerta = raio_alerta / 1.5
         distancia_x = retangulo.x - self.x
         distancia_y = retangulo.y - self.y
-        if ((distancia_x)**2 + (distancia_y)**2)**(1/2) <= 300:
+        if ((distancia_x)**2 + (distancia_y)**2)**(1/2) <= raio_alerta:
             if abs(distancia_x) > abs(distancia_y):
                 if distancia_x < 0:
                     self.x += self.velocidade
@@ -63,6 +75,7 @@ class Retangulo:
         self.stamina = stamina
         self.cansaco = 0
         self.img = pygame.image.load('mago_down.png')
+        self.raio = 300
 
     def move(self, keys):
         global janela
@@ -161,14 +174,21 @@ fonte_timer_e_contador = pygame.font.Font(None, 36)
 duracao_timer = 60 #em segundos
 comeco_timer = time.time() #início do timer
 
+velocidade_devagar = 0.4
+velocidade_padrao = 0.7
+velocidade_rapida = 1.1
+
+stamina_padrao = 1000
+
+ponto_inicial = (100, 100)
 # Cria o retângulo
-retangulo = Retangulo(100, 100, 0.7, 1000) # x, y, largura, altura, velocidade e stamina
+retangulo = Retangulo(ponto_inicial[0], ponto_inicial[1], velocidade_padrao, stamina_padrao) # x, y, largura, altura, velocidade e stamina
 
 # Spawnar os animais, foi escolhido 3 mas pode ser arbitrário
 inimigos_vivos = []
 contador = 0
 for i in range(3):
-  locals()['inimigo' + str(i)] = Inimigos(0.5)
+  locals()['inimigo' + str(i)] = Inimigos(velocidade_devagar)
   locals()['inimigo' + str(i)].spawnar(retangulo)
 
 # Colisão com as bordas
@@ -213,10 +233,9 @@ while running:
     
     # há uma pequena chance de surgir um animal cada vez que o loop roda
     chance = random.randrange(1,500)
-    if chance == 1:
-        locals()['inimigo' + str(i)] = Inimigos(0.5)
+    if chance == 1 and len(Inimigos.inimigos_vivos) <= 20:
+        locals()['inimigo' + str(i)] = Inimigos(velocidade_devagar)
         locals()['inimigo' + str(i)].spawnar(retangulo)
-        inimigos_vivos.append(i)
     for inimigo in Inimigos.inimigos_vivos:
         inimigo.desenhar_inimigo(exibir_janela)
         
