@@ -5,14 +5,16 @@ import random
 
 class Inimigos:
     # Responsável por cada animal vivo
-    inimigos_vivos =[]
+    inimigos_vivos = []
 
-    def __init__(self, velocidade):
+    def __init__(self, infos, nome):
         w = pygame.display.get_surface().get_width()
         h = pygame.display.get_surface().get_height()
         self.largura = w / (25.6 * 2)
         self.altura = h / (14.4 * 2)
-        self.velocidade = velocidade
+        self.nome = nome
+        self.velocidade = infos[self.nome]['velocidade']
+        self.cor = infos[self.nome]['referencia']
         self.raio = 100
         Inimigos.inimigos_vivos.append(self)
 
@@ -34,7 +36,7 @@ class Inimigos:
                     escolher = False	
 
     def desenhar_inimigo(self, janela):
-        pygame.draw.rect(janela, vermelho, (self.x, self.y, self.largura, self.altura))
+        pygame.draw.rect(janela, self.cor, (self.x, self.y, self.largura, self.altura))
         
     def morte(self):
         global contador
@@ -143,7 +145,7 @@ class Retangulo:
             self.velocidade = 0.1
         if keys[pygame.K_LCTRL] and escolhida:
             if self.stamina >= 1 and self.cansaco == 0:
-                self.stamina -= 5
+                self.stamina -= 10
                 self.velocidade = 0.15
                 if self.stamina <= 20:
                    self.cansaco = 200
@@ -180,6 +182,9 @@ verde = (0, 255, 0)
 preto = (0, 0, 0)
 amarelo = (255, 255, 0)
 vermelho = (255, 0, 0)
+azul = (95,159,159)
+laranja = (255, 165, 0)
+
 
 fonte_timer_e_contador = pygame.font.Font(None, 36)
 duracao_timer = 60 #em segundos
@@ -190,7 +195,13 @@ velocidade_devagar = 0.05
 velocidade_padrao = 0.1
 velocidade_rapida = 0.15
 
-stamina_padrao = 500
+infos = {
+        "Animal 1": {'velocidade': velocidade_devagar, 'referencia': azul},
+        "Animal 2": {'velocidade': velocidade_padrao, 'referencia': verde},
+        "Animal 3": {'velocidade': velocidade_rapida, 'referencia': vermelho}
+    }
+
+stamina_padrao = 1000
 
 ponto_inicial = (100, 100)
 # Cria o retângulo
@@ -200,8 +211,9 @@ retangulo = Retangulo(ponto_inicial[0], ponto_inicial[1], velocidade_padrao, sta
 inimigos_vivos = []
 contador = 0
 for i in range(3):
-  locals()['inimigo' + str(i)] = Inimigos(velocidade_devagar)
-  locals()['inimigo' + str(i)].spawnar(retangulo)
+    nome = random.choice([i for i in infos.keys()])
+    locals()['inimigo' + str(i)] = Inimigos(infos, nome)
+    locals()['inimigo' + str(i)].spawnar(retangulo)
 
 # Colisão com as bordas
 def borda(variavel):
@@ -249,13 +261,12 @@ while running:
     # há uma pequena chance de surgir um animal cada vez que o loop roda
     chance = random.randrange(1,500)
     if chance == 1 and len(Inimigos.inimigos_vivos) <= 20:
-        locals()['inimigo' + str(i)] = Inimigos(velocidade_devagar)
+        nome = random.choice([i for i in infos.keys()])
+        locals()['inimigo' + str(i)] = Inimigos(infos, nome)
         locals()['inimigo' + str(i)].spawnar(retangulo)
     for inimigo in Inimigos.inimigos_vivos:
         inimigo.desenhar_inimigo(exibir_janela)
         
-
-
     ratio_stamina = retangulo.stamina / 1000
 
     # Barra de vida
@@ -278,8 +289,6 @@ while running:
         inimigo = borda(inimigo)
         inimigo = colisao(retangulo, inimigo)
 
-
-         
     pygame.display.update()
 
     retangulo.move(pygame.key.get_pressed(), variacao_tempo)
