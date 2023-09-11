@@ -6,6 +6,7 @@ import random
 class Inimigos(pygame.sprite.Sprite):
     # Responsável por cada animal vivo
     inimigos_vivos = []
+    inimigos_vivos = []
 
     def __init__(self, infos, nome):
         super().__init__()
@@ -37,6 +38,7 @@ class Inimigos(pygame.sprite.Sprite):
                     escolher = False	
 
     def desenhar_inimigo(self, janela):
+        pygame.draw.rect(janela, self.cor, (self.x, self.y, self.largura, self.altura))
         pygame.draw.rect(janela, self.cor, (self.x, self.y, self.largura, self.altura))
         
     def morte(self):
