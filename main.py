@@ -1,17 +1,16 @@
-import pygame
+import pygame as pg
 import sys
-import time 
+import time
 import random
 
-class Inimigos(pygame.sprite.Sprite):
+class Inimigos(pg.sprite.Sprite):
     # Responsável por cada animal vivo
-    inimigos_vivos = []
     inimigos_vivos = []
 
     def __init__(self, infos, nome):
         super().__init__()
-        w = pygame.display.get_surface().get_width()
-        h = pygame.display.get_surface().get_height()
+        w = pg.display.get_surface().get_width()
+        h = pg.display.get_surface().get_height()
         self.largura = w / (25.6 * 2)
         self.altura = h / (14.4 * 2)
         self.nome = nome
@@ -21,8 +20,8 @@ class Inimigos(pygame.sprite.Sprite):
         Inimigos.inimigos_vivos.append(self)
 
     def spawnar(self, retangulo):
-        w = pygame.display.get_surface().get_width()	
-        h = pygame.display.get_surface().get_height()	
+        w = pg.display.get_surface().get_width()	
+        h = pg.display.get_surface().get_height()	
         escolher = False
 
         while not escolher:	
@@ -38,12 +37,11 @@ class Inimigos(pygame.sprite.Sprite):
                     escolher = False	
 
     def desenhar_inimigo(self, janela):
-        pygame.draw.rect(janela, self.cor, (self.x, self.y, self.largura, self.altura))
-        pygame.draw.rect(janela, self.cor, (self.x, self.y, self.largura, self.altura))
+        pg.draw.rect(janela, self.cor, (self.x, self.y, self.largura, self.altura))
+        pg.draw.rect(janela, self.cor, (self.x, self.y, self.largura, self.altura))
         
     def morte(self):
-        global contador
-        contador += 1
+    
         Inimigos.inimigos_vivos.remove(self)
     
     def move(self, retangulo, variacao_tempo):
@@ -76,8 +74,8 @@ class Inimigos(pygame.sprite.Sprite):
 
 class Retangulo:
     def __init__(self, x, y, velocidade, stamina):
-        w = pygame.display.get_surface().get_width()
-        h = pygame.display.get_surface().get_height()
+        w = pg.display.get_surface().get_width()
+        h = pg.display.get_surface().get_height()
         self.x = x
         self.y = y
         self.largura = w / 25.6
@@ -85,7 +83,7 @@ class Retangulo:
         self.velocidade = velocidade
         self.stamina = stamina
         self.cansaco = 0
-        self.img = pygame.image.load('mago_down.png')
+        self.img = pg.image.load('mago_down.png')
         self.raio = 300
 
     def move(self, keys, variacao_tempo):
@@ -94,19 +92,19 @@ class Retangulo:
         global setas
         global stamina_padrao
         global tela_cheia
-        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+        if keys[pg.K_RIGHT] or keys[pg.K_d]:
             setas['RIGHT'] += 1
         else:
             setas['RIGHT'] = 0
-        if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+        if keys[pg.K_LEFT] or keys[pg.K_a]:
             setas['LEFT'] += 1
         else:
             setas['LEFT'] = 0
-        if keys[pygame.K_UP] or keys[pygame.K_w]:
+        if keys[pg.K_UP] or keys[pg.K_w]:
             setas['UP'] += 1
         else:
             setas['UP'] = 0
-        if keys[pygame.K_DOWN] or keys[pygame.K_s]:
+        if keys[pg.K_DOWN] or keys[pg.K_s]:
             setas['DOWN'] += 1
         else:
             setas['DOWN'] = 0
@@ -119,34 +117,34 @@ class Retangulo:
                     vezes = setas[seta]
                     escolhida = seta
         
-        if keys[pygame.K_F11] and not tela_cheia:
-            janela = pygame.display.set_mode((largura, altura), pygame.FULLSCREEN)
+        if keys[pg.K_F11] and not tela_cheia:
+            janela = pg.display.set_mode((LARGURA, ALTURA), pg.FULLSCREEN)
             tela_cheia = True
-        if keys[pygame.K_ESCAPE] and tela_cheia:
-            janela = pygame.display.set_mode((largura, altura))
+        if keys[pg.K_ESCAPE] and tela_cheia:
+            janela = pg.display.set_mode((LARGURA, ALTURA))
             tela_cheia = False
 
         if escolhida:
             if escolhida == 'RIGHT':
-                self.img = pygame.image.load('mago_right.png')
+                self.img = pg.image.load('mago_right.png')
                 self.x += self.velocidade * variacao_tempo
             elif escolhida == 'LEFT':
-                self.img = pygame.image.load('mago_left.png')
+                self.img = pg.image.load('mago_left.png')
                 self.x -= self.velocidade * variacao_tempo
             elif escolhida == 'UP':
-                self.img = pygame.image.load('mago_up.png')
+                self.img = pg.image.load('mago_up.png')
                 self.y -= self.velocidade * variacao_tempo
             elif escolhida == 'DOWN':
-                self.img = pygame.image.load('mago_down.png')
+                self.img = pg.image.load('mago_down.png')
                 self.y += self.velocidade * variacao_tempo
             else:
-                self.img = pygame.image.load('mago_down.png')
+                self.img = pg.image.load('mago_down.png')
             
-        if keys[pygame.K_LSHIFT]:
+        if keys[pg.K_LSHIFT]:
             self.velocidade = 0.05
-        if not keys[pygame.K_LSHIFT]:
+        if not keys[pg.K_LSHIFT]:
             self.velocidade = 0.1
-        if keys[pygame.K_LCTRL] and escolhida:
+        if keys[pg.K_LCTRL] and escolhida:
             if self.stamina >= 1 and self.cansaco == 0:
                 self.stamina -= 10
                 self.velocidade = 0.15
@@ -163,45 +161,45 @@ class Retangulo:
         global width
         global height
         escala = 1/4
-        imagem = pygame.image.load('mago_down.png')
+        imagem = pg.image.load('mago_down.png')
         w, h = imagem.get_size()
         self.largura = w * escala
         self.altura = h * escala
-        redimensionar = pygame.transform.smoothscale(self.img, ((w*escala), (h*escala)))
+        redimensionar = pg.transform.smoothscale(self.img, ((w*escala), (h*escala)))
         janela.blit(redimensionar, (self.x, self.y))
 
 
-pygame.init()
+pg.init()
 
 # Configurações da janela
-largura = 1280
-altura = 720
-janela = pygame.display.set_mode((largura, altura))
+LARGURA = 1280
+ALTURA = 720
+janela = pg.display.set_mode((LARGURA, ALTURA))
 tela_cheia = False
 
 # Cores
-branco = (255, 255, 255)
-verde = (0, 255, 0)
-preto = (0, 0, 0)
-amarelo = (255, 255, 0)
-vermelho = (255, 0, 0)
-azul = (95,159,159)
-laranja = (255, 165, 0)
+BRANCO = (255, 255, 255)
+VERDE = (0, 255, 0)
+PRETO = (0, 0, 0)
+AMARELO = (255, 255, 0)
+VERMELHO = (255, 0, 0)
+AZUL = (95,159,159)
+MARROM = (210, 180, 140)
 
 
-fonte_timer_e_contador = pygame.font.Font(None, 36)
+fonte_timer_e_contador = pg.font.Font(None, 36)
 duracao_timer = 60 #em segundos
 comeco_timer = time.time() #início do timer
-clock = pygame.time.Clock()
+clock = pg.time.Clock()
 
 velocidade_devagar = 0.05
 velocidade_padrao = 0.1
 velocidade_rapida = 0.15
 
 infos = {
-        "Animal 1": {'velocidade': velocidade_devagar, 'referencia': azul},
-        "Animal 2": {'velocidade': velocidade_padrao, 'referencia': verde},
-        "Animal 3": {'velocidade': velocidade_rapida, 'referencia': vermelho}
+        "Animal 1": {'velocidade': velocidade_devagar, 'referencia': AZUL},
+        "Animal 2": {'velocidade': velocidade_padrao, 'referencia': VERDE},
+        "Animal 3": {'velocidade': velocidade_rapida, 'referencia': VERMELHO}
     }
 
 stamina_padrao = 1000
@@ -211,8 +209,9 @@ ponto_inicial = (100, 100)
 retangulo = Retangulo(ponto_inicial[0], ponto_inicial[1], velocidade_padrao, stamina_padrao) # x, y, largura, altura, velocidade e stamina
 
 # Spawnar os animais, foi escolhido 3 mas pode ser arbitrário
-inimigos_vivos = []
-contador = 0
+pontos_inimigos = {}
+for animal in infos.keys():
+    pontos_inimigos[animal] = 0
 for i in range(3):
     nome = random.choice([i for i in infos.keys()])
     locals()['inimigo' + str(i)] = Inimigos(infos, nome)
@@ -228,8 +227,8 @@ def borda(variavel):
         variavel.x = width - variavel.largura
     if variavel.y < 0:
         variavel.y = 0
-    if variavel.y > height - variavel.altura:
-        variavel.y = height - variavel.altura
+    if variavel.y > height - variavel.altura - 60:
+        variavel.y = height - variavel.altura - 60
     return variavel
 
 # Colisão do player com os animais
@@ -237,6 +236,7 @@ def colisao(player, objeto):
     if player.x + player.largura >= objeto.x >= player.x or player.x + player.largura >= objeto.x + objeto.largura >= player.x:
         if player.y + player.altura >= objeto.y >= player.y or player.y + player.altura >= objeto.y + objeto.altura >= player.y:
             objeto.morte()
+            pontos_inimigos[objeto.nome] += 1
 
 setas = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0} # Status de movimento inicial do retângulo (parado)
 # Loop principal
@@ -248,14 +248,14 @@ while running:
     # A movimentação é em função do tempo, se rodar muito ciclos ele para e volta dps
     variacao_tempo = clock.tick(30)
 
-    width = pygame.display.get_surface().get_width()
-    height = pygame.display.get_surface().get_height()
+    width = pg.display.get_surface().get_width()
+    height = pg.display.get_surface().get_height()
 
-    for evento in pygame.event.get():
-        if evento.type == pygame.QUIT:
+    for evento in pg.event.get():
+        if evento.type == pg.QUIT:
             running = False
     
-    janela.fill(branco)
+    janela.fill(BRANCO)
 
     retangulo.desenhar_mago(janela)
     
@@ -269,16 +269,19 @@ while running:
         inimigo.desenhar_inimigo(janela)
         
     ratio_stamina = retangulo.stamina / 1000
-
+    
+    #lugar de informacões:
+    width = pg.display.get_surface().get_width()
+    height = pg.display.get_surface().get_height()
+    pg.draw.rect(janela, MARROM, (0, height - 60, width, 60))
     # Barra de vida
-    width = pygame.display.get_surface().get_width()
-    height = pygame.display.get_surface().get_height()
-    pygame.draw.rect(janela, vermelho, (width / (largura/10), height / (altura/(altura-50)), width / (largura/200), height / (altura/20)))
-    pygame.draw.rect(janela, verde, (width / (largura/10), height / (altura/(altura-50)), width / (largura/200), height / (altura/20)))
+
+    pg.draw.rect(janela, VERMELHO, (width / (LARGURA/10), height / (ALTURA/(ALTURA-50)), width / (LARGURA/200), height / (ALTURA/20)))
+    pg.draw.rect(janela, VERDE, (width / (LARGURA/10), height / (ALTURA/(ALTURA-50)), width / (LARGURA/200), height / (ALTURA/20)))
 
     # Barra de stamina
-    pygame.draw.rect(janela, branco, (width / (largura/10), height / (altura/(altura-30)), width / (largura/200), height / (altura/20)))
-    pygame.draw.rect(janela, amarelo, (width / (largura/10), height / (altura/(altura-30)), width * ratio_stamina / (largura/200), height / (altura/20)))
+    pg.draw.rect(janela, BRANCO, (width / (LARGURA/10), height / (ALTURA/(ALTURA-30)), width / (LARGURA/200), height / (ALTURA/20)))
+    pg.draw.rect(janela, AMARELO, (width / (LARGURA/10), height / (ALTURA/(ALTURA-30)), width * ratio_stamina / (LARGURA/200), height / (ALTURA/20)))
 
     #movimentação dos inimigos
     for inimigo in Inimigos.inimigos_vivos:
@@ -289,22 +292,24 @@ while running:
         inimigo = borda(inimigo)
         inimigo = colisao(retangulo, inimigo)
 
-    retangulo.move(pygame.key.get_pressed(), variacao_tempo)
+    retangulo.move(pg.key.get_pressed(), variacao_tempo)
 
     tempo_atual = time.time()
     tempo_passado = tempo_atual - comeco_timer
     tempo_restante = max(0, duracao_timer - tempo_passado) #evite com que o timer dê errado quando acabe
     minutos, segundos = divmod(int(tempo_restante), 60) #faz a divisão correta entre minutos e segundos
     texto_timer = fonte_timer_e_contador.render(f'Tempo: {minutos:02d}:{segundos:02d}', True, (0, 0, 0)) #texto, situação de aparecimento, cor
-    janela.blit(texto_timer, (largura - texto_timer.get_width() - 15, altura - 40))
-
-    texto_contador = fonte_timer_e_contador.render(f'Pontuação: {contador}', True, (0, 0, 0))
-    janela.blit(texto_contador, (largura - texto_timer.get_width() - 200, altura - 40))
+    janela.blit(texto_timer, (LARGURA - texto_timer.get_width() - 15, ALTURA - 40))
+    x_inicial = LARGURA - texto_timer.get_width() - 200 
+    for animal in reversed(pontos_inimigos.keys()):
+        texto_contador = fonte_timer_e_contador.render(f'{animal}: {pontos_inimigos[animal]}', True, (0, 0, 0))
+        janela.blit(texto_contador, (x_inicial, ALTURA - 40))
+        x_inicial -= 150
 
     janela.blit(janela, (0,0)) #atualiza o timer e as barras corretamente
 
-    pygame.display.update()
+    pg.display.update()
 
 # Encerra Pygame
-pygame.quit()
+pg.quit()
 sys.exit()
