@@ -168,55 +168,6 @@ class Retangulo:
         redimensionar = pg.transform.smoothscale(self.img, ((w*escala), (h*escala)))
         janela.blit(redimensionar, (self.x, self.y))
 
-
-pg.init()
-
-# Configurações da janela
-LARGURA = 1280
-ALTURA = 720
-janela = pg.display.set_mode((LARGURA, ALTURA))
-tela_cheia = False
-
-# Cores
-BRANCO = (255, 255, 255)
-VERDE = (0, 255, 0)
-PRETO = (0, 0, 0)
-AMARELO = (255, 255, 0)
-VERMELHO = (255, 0, 0)
-AZUL = (95,159,159)
-MARROM = (210, 180, 140)
-
-
-fonte_timer_e_contador = pg.font.Font(None, 36)
-duracao_timer = 60 #em segundos
-comeco_timer = time.time() #início do timer
-clock = pg.time.Clock()
-
-velocidade_devagar = 0.05
-velocidade_padrao = 0.1
-velocidade_rapida = 0.15
-
-infos = {
-        "Animal 1": {'velocidade': velocidade_devagar, 'referencia': AZUL},
-        "Animal 2": {'velocidade': velocidade_padrao, 'referencia': VERDE},
-        "Animal 3": {'velocidade': velocidade_rapida, 'referencia': VERMELHO}
-    }
-
-stamina_padrao = 1000
-
-ponto_inicial = (100, 100)
-# Cria o retângulo
-retangulo = Retangulo(ponto_inicial[0], ponto_inicial[1], velocidade_padrao, stamina_padrao) # x, y, largura, altura, velocidade e stamina
-
-# Spawnar os animais, foi escolhido 3 mas pode ser arbitrário
-pontos_inimigos = {}
-for animal in infos.keys():
-    pontos_inimigos[animal] = 0
-for i in range(3):
-    nome = random.choice([i for i in infos.keys()])
-    locals()['inimigo' + str(i)] = Inimigos(infos, nome)
-    locals()['inimigo' + str(i)].spawnar(retangulo)
-
 # Colisão com as bordas
 def borda(variavel):
     global width
@@ -238,13 +189,65 @@ def colisao(player, objeto):
             objeto.morte()
             pontos_inimigos[objeto.nome] += 1
 
+pg.init()
+
+BRANCO = (255, 255, 255)
+VERDE = (0, 230, 0)
+PRETO = (0, 0, 0)
+AMARELO = (255, 255, 0)
+VERMELHO = (255, 0, 0)
+AZUL = (95,159,159)
+MARROM = (210, 180, 140)
+MARROM_ESCURO = (123, 66, 48)
+CINZA = (211,211,211)
+
+# Configurações da janela
+LARGURA = 1280
+ALTURA = 720
+janela = pg.display.set_mode((LARGURA, ALTURA))
+tela_cheia = False
+
+fonte = pg.font.Font('CW_BITMP.ttf', 24) #fonte importada para o menu inferior
+duracao_timer = 60 #em segundos
+comeco_timer = time.time() #início do timer
+clock = pg.time.Clock()
+
+#velocidade dos animais
+velocidade_devagar = 0.05
+velocidade_padrao = 0.1
+velocidade_rapida = 0.15
+
+#informações cruciais dos animais
+infos = {
+        "Animal 1": {'velocidade': velocidade_devagar, 'referencia': AZUL},
+        "Animal 2": {'velocidade': velocidade_padrao, 'referencia': VERDE},
+        "Animal 3": {'velocidade': velocidade_rapida, 'referencia': VERMELHO}
+    }
+
+stamina_padrao = 1000
+
+ponto_inicial = (100, 100)
+# Cria o retângulo
+retangulo = Retangulo(ponto_inicial[0], ponto_inicial[1], velocidade_padrao, stamina_padrao) # x, y, largura, altura, velocidade e stamina
+
+# Spawnar os animais, foi escolhido 3, mas pode ser arbitrário
+pontos_inimigos = {}
+for animal in infos.keys():
+    pontos_inimigos[animal] = 0
+for i in range(3):
+    nome = random.choice([i for i in infos.keys()])
+    locals()['inimigo' + str(i)] = Inimigos(infos, nome)
+    locals()['inimigo' + str(i)].spawnar(retangulo)
+
 setas = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0} # Status de movimento inicial do retângulo (parado)
 # Loop principal
 running = True
 
+hud = pg.transform.scale(pg.image.load('hud.png'), (1800, 60)) #imagem da madeira do menu inferior
+background = pg.transform.scale(pg.image.load('bg.png'), (1280, 720))
 
 while running:
-    
+    janela.blit(background, (0, 0))
     # A movimentação é em função do tempo, se rodar muito ciclos ele para e volta dps
     variacao_tempo = clock.tick(30)
 
@@ -254,8 +257,6 @@ while running:
     for evento in pg.event.get():
         if evento.type == pg.QUIT:
             running = False
-    
-    janela.fill(BRANCO)
 
     retangulo.desenhar_mago(janela)
     
@@ -273,15 +274,28 @@ while running:
     #lugar de informacões:
     width = pg.display.get_surface().get_width()
     height = pg.display.get_surface().get_height()
-    pg.draw.rect(janela, MARROM, (0, height - 60, width, 60))
-    # Barra de vida
+    janela.blit(hud, (-200, height - 60))
 
-    pg.draw.rect(janela, VERMELHO, (width / (LARGURA/10), height / (ALTURA/(ALTURA-50)), width / (LARGURA/200), height / (ALTURA/20)))
-    pg.draw.rect(janela, VERDE, (width / (LARGURA/10), height / (ALTURA/(ALTURA-50)), width / (LARGURA/200), height / (ALTURA/20)))
+    #Moldura barra de vida
+    largura_barra = 200
+    altura_barra = 15
+    raio_borda = 4
+    espessura = 2
+    
+    #Fundo barra de stamina
+    pg.draw.rect(janela, CINZA, (width / (LARGURA/10), height / (ALTURA/(ALTURA-28)), largura_barra, altura_barra), border_radius=raio_borda)
+
+    #Fundo barra de vida
+    pg.draw.rect(janela, CINZA, (width / (LARGURA/10), height / (ALTURA/(ALTURA-44)), largura_barra, altura_barra), border_radius=raio_borda)
+
+    # Barra de vida
+    pg.draw.rect(janela, VERDE, (width / (LARGURA/10), height / (ALTURA/(ALTURA-44)), largura_barra, altura_barra), border_radius=raio_borda)
+    pg.draw.rect(janela, MARROM_ESCURO, (width / (LARGURA/10), height / (ALTURA/(ALTURA-44)), largura_barra, altura_barra), espessura, border_radius=raio_borda)
 
     # Barra de stamina
-    pg.draw.rect(janela, BRANCO, (width / (LARGURA/10), height / (ALTURA/(ALTURA-30)), width / (LARGURA/200), height / (ALTURA/20)))
-    pg.draw.rect(janela, AMARELO, (width / (LARGURA/10), height / (ALTURA/(ALTURA-30)), width * ratio_stamina / (LARGURA/200), height / (ALTURA/20)))
+    pg.draw.rect(janela, AMARELO, (width / (LARGURA/10), height / (ALTURA/(ALTURA-28)), largura_barra * ratio_stamina, altura_barra), border_radius=raio_borda)
+    pg.draw.rect(janela, MARROM_ESCURO, (width / (LARGURA/10), height / (ALTURA/(ALTURA-28)), largura_barra, altura_barra), espessura, border_radius=raio_borda)
+
 
     #movimentação dos inimigos
     for inimigo in Inimigos.inimigos_vivos:
@@ -298,12 +312,12 @@ while running:
     tempo_passado = tempo_atual - comeco_timer
     tempo_restante = max(0, duracao_timer - tempo_passado) #evite com que o timer dê errado quando acabe
     minutos, segundos = divmod(int(tempo_restante), 60) #faz a divisão correta entre minutos e segundos
-    texto_timer = fonte_timer_e_contador.render(f'Tempo: {minutos:02d}:{segundos:02d}', True, (0, 0, 0)) #texto, situação de aparecimento, cor
-    janela.blit(texto_timer, (LARGURA - texto_timer.get_width() - 15, ALTURA - 40))
+    texto_timer = fonte.render(f'Tempo: {minutos:02d}:{segundos:02d}', True, (0, 0, 0)) #texto, situação de aparecimento, cor
+    janela.blit(texto_timer, (LARGURA - texto_timer.get_width() - 15, ALTURA - 50))
     x_inicial = LARGURA - texto_timer.get_width() - 200 
     for animal in reversed(pontos_inimigos.keys()):
-        texto_contador = fonte_timer_e_contador.render(f'{animal}: {pontos_inimigos[animal]}', True, (0, 0, 0))
-        janela.blit(texto_contador, (x_inicial, ALTURA - 40))
+        texto_contador = fonte.render(f'{animal}: {pontos_inimigos[animal]}', True, (0, 0, 0))
+        janela.blit(texto_contador, (x_inicial, ALTURA - 50))
         x_inicial -= 150
 
     janela.blit(janela, (0,0)) #atualiza o timer e as barras corretamente
