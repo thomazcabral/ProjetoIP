@@ -14,27 +14,35 @@ class Inimigos(pg.sprite.Sprite):
         self.largura = w / (25.6 * 2)
         self.altura = h / (14.4 * 2)
         self.nome = nome
-        self.velocidade = infos[self.nome]['velocidade']
+        self.velocidade_padrao = infos[self.nome]['velocidade']
+        self.velocidade = self.velocidade_padrao
         self.cor = infos[self.nome]['referencia']
         self.raio = 100
+        self.direcao = False
+        self.mov_idle = 0
+        self.velocidade_idle = 0.03
+        self.repouso = 0
         Inimigos.inimigos_vivos.append(self)
 
     def spawnar(self, retangulo):
         w = pg.display.get_surface().get_width()	
         h = pg.display.get_surface().get_height()	
         escolher = False
-
+        global Parede
         while not escolher:	
             valorx = random.randrange(0, w)	
-            valory = random.randrange(0, h)
+            valory = random.randrange(0, h - 60)
             # Só irão nascer animais em um raio maior que 300 px
             if ((retangulo.x + (retangulo.largura / 2) - valorx) ** 2 + (retangulo.y + (retangulo.altura / 2) - valory)** 2) ** (1/2) >= retangulo.raio:	
                 self.x = valorx	
                 self.y = valory	
                 escolher = True
-            for inimigo in Inimigos.inimigos_vivos:
-                if inimigo != self and ((inimigo.x + (inimigo.largura / 2) - valorx) ** 2 + (inimigo.y + (inimigo.altura / 2) - valory)** 2) ** (1/2) < inimigo.raio:
-                    escolher = False	
+                for inimigo in Inimigos.inimigos_vivos:
+                    if inimigo != self and ((inimigo.x + (inimigo.largura / 2) - valorx) ** 2 + (inimigo.y + (inimigo.altura / 2) - valory)** 2) ** (1/2) < inimigo.raio:
+                        escolher = False	
+                for parede in Parede.paredes:
+                    if colisao_amigavel(self, parede):
+                        escolher = False
 
     def desenhar_inimigo(self, janela):
         pg.draw.rect(janela, self.cor, (self.x, self.y, self.largura, self.altura))
@@ -47,6 +55,7 @@ class Inimigos(pg.sprite.Sprite):
     def move(self, retangulo, variacao_tempo):
         global velocidade_devagar
         global velocidade_rapida
+        global Parede
         raio_alerta = retangulo.raio
         if retangulo.velocidade == velocidade_rapida:
             raio_alerta = raio_alerta * 1.5
@@ -56,21 +65,52 @@ class Inimigos(pg.sprite.Sprite):
         distancia_y = retangulo.y - self.y
         antigo_x = self.x
         antigo_y = self.y
+        direcoes = ['direita', 'esquerda', 'baixo', 'cima']
+        if not self.direcao and self.repouso == 0:
+            self.direcao = random.choice(direcoes)
+            self.repouso = random.randrange(160, 240)
+            self.mov_idle = random.randrange(120,150)
+            self.velocidade = self.velocidade_idle
+        if self.mov_idle == 0:
+            self.direcao = False
+            self.velocidade = self.velocidade_padrao
+        else: 
+            self.mov_idle -= 1
+        if self.repouso > 0:
+            self.repouso -= 1
+
         if ((distancia_x)**2 + (distancia_y)**2)**(1/2) <= raio_alerta:
+            self.mov_idle = 0
             if abs(distancia_x) > abs(distancia_y):
+                self.velocidade = self.velocidade_padrao
                 if distancia_x < 0:
-                    self.x += self.velocidade * variacao_tempo
+                    self.direcao = 'direita'
                 else:
-                    self.x -= self.velocidade * variacao_tempo
+                    self.direcao = 'esquerda'
             else:
                 if distancia_y < 0:
-                    self.y += self.velocidade * variacao_tempo
+                    self.direcao = 'baixo'
                 else:
-                    self.y -= self.velocidade * variacao_tempo
-        for inimigo in Inimigos.inimigos_vivos:
-                if inimigo != self and (abs(inimigo.x - self.x) < (inimigo.largura + self.largura) / 2 and abs(inimigo.y - self.y) < (inimigo.altura + self.altura) / 2):
-                    self.x = antigo_x
-                    self.y = antigo_y
+                    self.direcao = 'cima'
+
+        if self.direcao == 'direita':
+            self.x += self.velocidade * variacao_tempo
+        elif self.direcao == 'esquerda':
+            self.x -= self.velocidade * variacao_tempo
+        elif self.direcao == 'baixo':
+            self.y += self.velocidade * variacao_tempo
+        elif self.direcao == 'cima':
+            self.y -= self.velocidade * variacao_tempo
+        bloqueio = []
+        for k in Inimigos.inimigos_vivos:
+            if k != self:
+                bloqueio.append(k)
+        for k in Parede.paredes:
+            bloqueio.append(k)
+        for inimigo in bloqueio:
+            if colisao_amigavel(self, inimigo):
+                self.x = antigo_x
+                self.y = antigo_y
 
 class Retangulo:
     def __init__(self, x, y, velocidade, stamina):
@@ -123,7 +163,9 @@ class Retangulo:
         if keys[pg.K_ESCAPE] and tela_cheia:
             janela = pg.display.set_mode((LARGURA, ALTURA))
             tela_cheia = False
-
+        
+        antigo_x = self.x
+        antigo_y = self.y
         if escolhida:
             if escolhida == 'RIGHT':
                 self.img = pg.image.load('mago_right.png')
@@ -139,6 +181,11 @@ class Retangulo:
                 self.y += self.velocidade * variacao_tempo
             else:
                 self.img = pg.image.load('mago_down.png')
+        global Parede
+        for parede in Parede.paredes:
+            if colisao_amigavel(self, parede,):
+                self.x = antigo_x
+                self.y = antigo_y
             
         if keys[pg.K_LSHIFT]:
             self.velocidade = 0.05
@@ -168,6 +215,56 @@ class Retangulo:
         redimensionar = pg.transform.smoothscale(self.img, ((w*escala), (h*escala)))
         janela.blit(redimensionar, (self.x, self.y))
 
+class Parede:
+    paredes = []
+    raio = 200
+    def __init__(self, proporcao):
+        w = pg.display.get_surface().get_width()
+        h = pg.display.get_surface().get_height()
+        self.largura = self.altura = ((w + h) / 2) * proporcao
+        self.raio = Parede.raio 
+        escolher = False
+        global retangulo
+        while not escolher:
+            self.x = random.randrange(0, int(w - self.largura))
+            self.y = random.randrange(50, int(h - 60 - self.altura))
+            if not colisao_amigavel(self, retangulo):
+                escolher = True
+            for parede in Parede.paredes:
+                if ((parede.x + (parede.largura / 2) - self.x) ** 2 + (parede.y + (parede.altura / 2) - self.y)** 2) ** (1/2) < parede.raio:
+                    escolher = False
+
+        Parede.paredes.append(self)
+    def desenhar_parede(self):
+        pg.draw.rect(janela, PRETO, (self.x, self.y, self.largura, self.altura))
+
+# Colisão com as bordas
+def borda(variavel):
+    global width
+    global height
+    if variavel.x < 0:
+        variavel.x = 0
+    if variavel.x > width - variavel.largura:
+        variavel.x = width - variavel.largura
+    if variavel.y < 0:
+        variavel.y = 0
+    if variavel.y > height - variavel.altura - 60:
+        variavel.y = height - variavel.altura - 60
+    return variavel
+
+# Colisão do player com os animais
+def colisao(player, objeto):
+    if player.x + player.largura >= objeto.x >= player.x or player.x + player.largura >= objeto.x + objeto.largura >= player.x:
+        if player.y + player.altura >= objeto.y >= player.y or player.y + player.altura >= objeto.y + objeto.altura >= player.y:
+            objeto.morte()
+            pontos_inimigos[objeto.nome] += 1
+
+def colisao_amigavel(objeto1, objeto2):
+    if (objeto2.x + objeto2.largura >= objeto1.x >= objeto2.x or objeto1.x + objeto1.largura >= objeto2.x >= objeto1.x) and (objeto2.y + objeto2.altura >= objeto1.y >= objeto2.y or objeto1.y + objeto1.altura >= objeto2.y >= objeto1.y):
+        return True
+        
+
+
 
 pg.init()
 
@@ -193,8 +290,9 @@ comeco_timer = time.time() #início do timer
 clock = pg.time.Clock()
 
 velocidade_devagar = 0.05
-velocidade_padrao = 0.1
-velocidade_rapida = 0.15
+velocidade_padrao = 0.0575
+velocidade_rapida = 0.065
+
 
 infos = {
         "Animal 1": {'velocidade': velocidade_devagar, 'referencia': AZUL},
@@ -208,35 +306,19 @@ ponto_inicial = (100, 100)
 # Cria o retângulo
 retangulo = Retangulo(ponto_inicial[0], ponto_inicial[1], velocidade_padrao, stamina_padrao) # x, y, largura, altura, velocidade e stamina
 
-# Spawnar os animais, foi escolhido 3 mas pode ser arbitrário
+#cria as paredes
+num_arvores = random.randrange(4,8)
+for j in range(num_arvores):
+   locals()['parede' + str(j)] = Parede(0.05)
+
+# Spawnar os animais, foi escolhido 3 mas é arbitrário
 pontos_inimigos = {}
 for animal in infos.keys():
     pontos_inimigos[animal] = 0
 for i in range(3):
-    nome = random.choice([i for i in infos.keys()])
+    nome = random.choice([k for k in infos.keys()])
     locals()['inimigo' + str(i)] = Inimigos(infos, nome)
     locals()['inimigo' + str(i)].spawnar(retangulo)
-
-# Colisão com as bordas
-def borda(variavel):
-    global width
-    global height
-    if variavel.x < 0:
-        variavel.x = 0
-    if variavel.x > width - variavel.largura:
-        variavel.x = width - variavel.largura
-    if variavel.y < 0:
-        variavel.y = 0
-    if variavel.y > height - variavel.altura - 60:
-        variavel.y = height - variavel.altura - 60
-    return variavel
-
-# Colisão do player com os animais
-def colisao(player, objeto):
-    if player.x + player.largura >= objeto.x >= player.x or player.x + player.largura >= objeto.x + objeto.largura >= player.x:
-        if player.y + player.altura >= objeto.y >= player.y or player.y + player.altura >= objeto.y + objeto.altura >= player.y:
-            objeto.morte()
-            pontos_inimigos[objeto.nome] += 1
 
 setas = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0} # Status de movimento inicial do retângulo (parado)
 # Loop principal
@@ -244,7 +326,6 @@ running = True
 
 
 while running:
-    
     # A movimentação é em função do tempo, se rodar muito ciclos ele para e volta dps
     variacao_tempo = clock.tick(30)
 
@@ -259,10 +340,14 @@ while running:
 
     retangulo.desenhar_mago(janela)
     
+    for j in range(num_arvores):
+        locals()['parede' + str(j)].desenhar_parede()
     # há uma pequena chance de surgir um animal cada vez que o loop roda
+
     chance = random.randrange(1,500)
-    if chance == 1 and len(Inimigos.inimigos_vivos) <= 20:
-        nome = random.choice([i for i in infos.keys()])
+    total_vivos = len(Inimigos.inimigos_vivos)
+    if total_vivos == 0 or (chance == 1 and total_vivos <= 20):
+        nome = random.choice([j for j in infos.keys()])
         locals()['inimigo' + str(i)] = Inimigos(infos, nome)
         locals()['inimigo' + str(i)].spawnar(retangulo)
     for inimigo in Inimigos.inimigos_vivos:
