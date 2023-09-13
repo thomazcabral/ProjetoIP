@@ -2,7 +2,7 @@ import pygame as pg
 import sys
 import time
 import random
-from classes import Inimigos, Parede, Retangulo
+from classes import Inimigos, Parede, Retangulo, Rio
 
 
 # Colisão com as bordas
@@ -81,22 +81,6 @@ ponto_inicial = (100, 100)
 
 retangulo = Retangulo(ponto_inicial[0], ponto_inicial[1], velocidade_padrao, stamina_padrao)
 
-#cria as paredes
-num_arvores = random.randrange(4,8)
-for j in range(num_arvores):
-    locals()['parede' + str(j)] = Parede(0.05, retangulo)
-
-# Spawnar os animais, foi escolhido 3 mas é arbitrário
-
-# Spawnar os animais, foi escolhido 3, mas pode ser arbitrário
-
-pontos_inimigos = {}
-for animal in infos.keys():
-    pontos_inimigos[animal] = 0
-for i in range(3):
-    nome = random.choice([k for k in infos.keys()])
-    locals()['inimigo' + str(i)] = Inimigos(infos, nome, retangulo)
-    locals()['inimigo' + str(i)].spawnar(retangulo)
 
 setas = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0} # Status de movimento inicial do retângulo (parado)
 # Loop principal
@@ -107,7 +91,7 @@ hud = pg.transform.scale(pg.image.load('hud.png'), (1800, 60)) #imagem da madeir
 #gera cada pequeno pedaço de grama do mapa
 tilemap = []
 mapa = {}
-for i in range(13):
+for i in range(14):
     tilemap.append(pg.transform.scale(pg.image.load(f'tile{i + 1}.png'), (50, 50)))
     for x in range(0, LARGURA, 50):
         for y in range(0, ALTURA, 50):
@@ -117,6 +101,89 @@ for i in range(13):
             else:
                 num = 0
             mapa[(x, y)] = num
+
+direcoes = ['direita', 'esquerda', 'baixo', 'cima']
+direcoes2 = direcoes.copy()
+foz = False
+direcao_rio_inicial = random.choice(direcoes)
+direcoes2.pop(direcoes.index(direcao_rio_inicial))
+direcao_rio_final = random.choice(direcoes2)
+fluxo_rio = [direcao_rio_inicial, direcao_rio_final]
+direcao_rio = direcao_rio_inicial
+if ('direita' in fluxo_rio and 'esquerda' in fluxo_rio) or ('cima' in fluxo_rio and 'baixo' in fluxo_rio):
+    fluxo_rio = direcoes
+    fluxo_rio.remove(direcao_rio_final)
+
+if direcao_rio_inicial == 'direita':
+    y = random.randrange(0, ALTURA, 100)
+    mapa[(0, y)] = mapa[(50, y)] = mapa[(0, y + 50)] = mapa[(50, y + 50)] = 13
+    x_vez = 0
+    y_vez = y
+elif direcao_rio_inicial == 'esquerda':
+    y = random.randrange(0, ALTURA, 100)
+    ultimo = LARGURA
+    while ultimo % 50 != 0:
+        ultimo -= 1
+    ultimo -= 50
+    mapa[(ultimo, y)] = mapa[(ultimo + 50, y)] = mapa[(ultimo, y + 50)] = mapa[(ultimo + 50, y + 50)] = 13
+    x_vez = ultimo
+    y_vez = y
+elif direcao_rio_inicial == 'baixo':
+    x = random.randrange(0, LARGURA, 100)
+    mapa[(x, 0)] = mapa[(x, 50)] = mapa[(x + 50, 0)] = mapa[(x + 50, 50)] = 13
+    x_vez = x
+    y_vez = 0
+elif direcao_rio_inicial == 'cima':
+    x = random.randrange(0, LARGURA, 100)
+    ultimo = ALTURA
+    while ultimo % 50 != 0:
+        ultimo -= 1
+    ultimo -= 50
+    mapa[(x, ultimo)] = mapa[(x, ultimo + 50)] = mapa[(x + 50, ultimo)] = mapa[(x + 50, ultimo + 50)] = 13
+    x_vez = x
+    y_vez = ultimo
+Rio(x_vez, y_vez)
+
+while not foz:
+    if direcao_rio == direcao_rio_inicial:
+        direcao_rio = random.choice(fluxo_rio)
+    else:
+        direcao_rio = direcao_rio_inicial
+    if direcao_rio == 'direita':
+        x_vez += 100
+        if x_vez + 150 > LARGURA:
+                foz = True
+        else:
+            direcao_rio = direcao_rio_inicial
+    elif direcao_rio == 'esquerda':
+        x_vez -= 100
+        if x_vez <= 0:
+            foz = True
+    elif direcao_rio == 'baixo':
+        y_vez += 100
+        if y_vez + 100 > ALTURA:
+                foz = True
+    elif direcao_rio == 'cima':
+        y_vez -= 100
+        if y_vez <= 0:
+            foz = True
+    mapa[(x_vez, y_vez)] = mapa[(x_vez, y_vez + 50)] = mapa[(x_vez + 50, y_vez)] = mapa[(x_vez + 50, y_vez + 50)] = 13
+    Rio(x_vez, y_vez)
+
+#cria as paredes
+num_arvores = random.randrange(4,8)
+for j in range(num_arvores):
+    locals()['parede' + str(j)] = Parede(0.05, retangulo, Rio.rios)
+
+# Spawnar os animais, foi escolhido 3, mas pode ser arbitrário
+
+pontos_inimigos = {}
+for animal in infos.keys():
+    pontos_inimigos[animal] = 0
+for i in range(3):
+    nome = random.choice([k for k in infos.keys()])
+    locals()['inimigo' + str(i)] = Inimigos(infos, nome, retangulo)
+    locals()['inimigo' + str(i)].spawnar(retangulo, Parede.paredes, Rio.rios)
 
 while running:
 
@@ -151,10 +218,14 @@ while running:
 
     chance = random.randrange(1,500)
     total_vivos = len(Inimigos.inimigos_vivos)
-    if total_vivos == 0 or (chance == 1 and total_vivos <= 20): 
+    nenhum = True
+    for inimigo in Inimigos.inimigos_vivos:
+        if not (inimigo.x < -1 * inimigo.largura or inimigo.x >= width or inimigo.y < -1 * inimigo.altura or inimigo.y > height):
+            nenhum = False
+    if nenhum or total_vivos == 0 or (chance == 1 and total_vivos <= 20): 
         nome = random.choice([j for j in infos.keys()])
         locals()['inimigo' + str(i)] = Inimigos(infos, nome, retangulo)
-        locals()['inimigo' + str(i)].spawnar(retangulo)
+        locals()['inimigo' + str(i)].spawnar(retangulo, Parede.paredes, Rio.rios)
     for inimigo in Inimigos.inimigos_vivos:
         inimigo.desenhar_inimigo(janela)
     
@@ -192,14 +263,13 @@ while running:
 
     #movimentação dos inimigos
     for inimigo in Inimigos.inimigos_vivos:
-        inimigo.move(retangulo, variacao_tempo)
+        inimigo.move(retangulo, variacao_tempo, Parede.paredes, Rio.rios)
     # Colisão com as bordas
     retangulo = borda(retangulo)
     for inimigo in Inimigos.inimigos_vivos: 
-        inimigo = borda(inimigo)
         inimigo = colisao(retangulo, inimigo)
 
-    retangulo.move(keys, variacao_tempo, setas)
+    retangulo.move(keys, variacao_tempo, setas, Parede.paredes, Rio.rios)
 
     tempo_atual = time.time()
     tempo_passado = tempo_atual - comeco_timer

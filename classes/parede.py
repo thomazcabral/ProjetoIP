@@ -1,7 +1,6 @@
 import pygame as pg
 import random
 
-
 PRETO = (0, 0, 0)
 LARGURA = 1280
 ALTURA = 720
@@ -17,14 +16,16 @@ def colisao_amigavel(objeto1, objeto2):
 class Parede:
     paredes = []
     raio = 200
-    def __init__(self, proporcao, instancia_retangulo):
+    def __init__(self, proporcao, instancia_retangulo, rios):
         w = pg.display.get_surface().get_width()
         h = pg.display.get_surface().get_height()
         self.largura = ((w + h) / 2) * proporcao
         self.altura = self.largura / 2
         escolher = False
         self.retangulo = instancia_retangulo
-        while not escolher:
+        i = 0
+        while not escolher and i < 500:
+            i += 1
             self.x = random.randrange(0, int(w - self.largura))
             self.y = random.randrange(50, int(h - 60 - self.altura))
             if not colisao_amigavel(self, self.retangulo):
@@ -32,7 +33,12 @@ class Parede:
             for parede in Parede.paredes:
                 if ((parede.x + (parede.largura / 2) - self.x) ** 2 + (parede.y + (parede.altura / 2) - self.y)** 2) ** (1/2) < parede.raio:
                     escolher = False
-
+            for rio in rios:
+                if colisao_amigavel(self, rio):
+                    escolher = False
+        if i == 500:
+            self.x = w
+            self.y = h
         Parede.paredes.append(self)
         
     def desenhar_tronco(self):

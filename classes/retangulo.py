@@ -24,7 +24,7 @@ class Retangulo:
         self.img = pg.image.load('mago_down.png')
         self.raio = 300
 
-    def move(self, keys, variacao_tempo, setas):
+    def move(self, keys, variacao_tempo, setas, paredes, rios):
         global janela
         #método usado pra conferir qual tecla foi usada mais recentemente
         if keys[pg.K_RIGHT] or keys[pg.K_d]:
@@ -69,9 +69,13 @@ class Retangulo:
                 self.y += self.velocidade * variacao_tempo
             else:
                 self.img = pg.image.load('mago_down.png')
-        global Parede
-        for parede in Parede.paredes:
-            if colisao_amigavel(self, parede):
+        bloqueio = []
+        for k in paredes:
+            bloqueio.append(k)
+        for k in rios:
+            bloqueio.append(k)
+        for bloqueador in bloqueio:
+            if colisao_amigavel(self, bloqueador):
                 self.x = antigo_x
                 self.y = antigo_y
             
