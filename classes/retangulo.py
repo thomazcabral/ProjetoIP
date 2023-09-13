@@ -21,7 +21,7 @@ class Retangulo:
         self.velocidade = velocidade
         self.stamina = stamina
         self.cansaco = 0
-        self.img = pg.image.load('mago_down.png')
+        self.img = pg.image.load('assets/mago_down.png')
         self.raio = 300
 
     def move(self, keys, variacao_tempo, setas, paredes, rios):
@@ -56,19 +56,19 @@ class Retangulo:
         antigo_y = self.y
         if escolhida:
             if escolhida == 'RIGHT':
-                self.img = pg.image.load('mago_right.png')
+                self.img = pg.image.load('assets/mago_right.png')
                 self.x += self.velocidade * variacao_tempo
             elif escolhida == 'LEFT':
-                self.img = pg.image.load('mago_left.png')
+                self.img = pg.image.load('assets/mago_left.png')
                 self.x -= self.velocidade * variacao_tempo
             elif escolhida == 'UP':
-                self.img = pg.image.load('mago_up.png')
+                self.img = pg.image.load('assets/mago_up.png')
                 self.y -= self.velocidade * variacao_tempo
             elif escolhida == 'DOWN':
-                self.img = pg.image.load('mago_down.png')
+                self.img = pg.image.load('assets/mago_down.png')
                 self.y += self.velocidade * variacao_tempo
             else:
-                self.img = pg.image.load('mago_down.png')
+                self.img = pg.image.load('assets/mago_down.png')
         bloqueio = []
         for k in paredes:
             bloqueio.append(k)
@@ -100,7 +100,7 @@ class Retangulo:
         global width
         global height
         escala = 1/4
-        imagem = pg.image.load('mago_down.png')
+        imagem = pg.image.load('assets/mago_down.png')
         w, h = imagem.get_size()
         self.largura = w * escala
         # como a imagem do mago é gerada 2/3 abaixo do y dele, a hitbox coincide com sua parte mais inferior

@@ -4,9 +4,11 @@ import time
 import random
 from classes import Inimigos, Parede, Retangulo, Rio
 
-animal1 = pg.transform.smoothscale(pg.image.load('animal1.png',), (50, 50))
-animal2 = pg.transform.smoothscale(pg.image.load('animal2.png',), (50, 50))
-animal3 = pg.transform.smoothscale(pg.image.load('animal3.png',), (50, 50))
+#Imagens
+hud = pg.transform.scale(pg.image.load('assets/hud.png'), (1800, 60)) #imagem da madeira do menu inferior
+animal1 = pg.transform.smoothscale(pg.image.load('assets/animal1.png',), (50, 50))
+animal2 = pg.transform.smoothscale(pg.image.load('assets/animal2.png',), (50, 50))
+animal3 = pg.transform.smoothscale(pg.image.load('assets/animal3.png',), (50, 50))
 
 # Colisão com as bordas
 def borda(variavel):
@@ -60,8 +62,8 @@ janela = pg.display.set_mode((LARGURA, ALTURA))
 tela_cheia = False
 
 
-fonte_contador = pg.font.Font('CW_BITMP.ttf', 18) #fonte importada para o menu inferior
-fonte_tempo = pg.font.Font('CW_BITMP.ttf', 24)
+fonte_contador = pg.font.Font('assets/CW_BITMP.ttf', 18) #fonte importada para o menu inferior
+fonte_tempo = pg.font.Font('assets/CW_BITMP.ttf', 24)
 duracao_timer = 60 #em segundos
 comeco_timer = time.time() #início do timer
 clock = pg.time.Clock()
@@ -90,14 +92,12 @@ setas = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0} # Status de movimento inicia
 # Loop principal
 running = True
 
-hud = pg.transform.scale(pg.image.load('hud.png'), (1800, 60)) #imagem da madeira do menu inferior
-
 
 #gera cada pequeno pedaço de grama do mapa
 tilemap = []
 mapa = {}
 for i in range(14):
-    tilemap.append(pg.transform.scale(pg.image.load(f'tile{i + 1}.png'), (50, 50)))
+    tilemap.append(pg.transform.scale(pg.image.load(f'assets/tile{i + 1}.png'), (50, 50)))
     for x in range(0, LARGURA, 50):
         for y in range(0, ALTURA, 50):
             num1 = random.randrange(1,10)

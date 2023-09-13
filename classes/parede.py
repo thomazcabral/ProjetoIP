@@ -1,5 +1,6 @@
 import pygame as pg
 import random
+import os
 
 PRETO = (0, 0, 0)
 LARGURA = 1280
@@ -42,7 +43,7 @@ class Parede:
         Parede.paredes.append(self)
         
     def desenhar_tronco(self):
-        self.img = pg.image.load('tronco.png')
+        self.img = pg.image.load('assets/tronco.png')
         x = self.img.get_size()[0]
         y = self.img.get_size()[1]
         escala = self.largura * 2/ x
@@ -50,7 +51,7 @@ class Parede:
         janela.blit(redimensionar, (self.x - (self.largura / 2), self.y))
 
     def desenhar_folhas(self):
-        self.img = pg.image.load('folhas.png')
+        self.img = pg.image.load('assets/folhas.png')
         self.img.set_alpha(210)
         x = self.img.get_size()[0]
         y = self.img.get_size()[1]
