@@ -119,17 +119,28 @@ while running:
         if evento.type == pg.QUIT:
             running = False
 
+    keys = pg.key.get_pressed()
+
+    if keys[pg.K_F11] and not tela_cheia:
+        janela = pg.display.set_mode((LARGURA, ALTURA), pg.FULLSCREEN)
+        tela_cheia = True
+    if keys[pg.K_ESCAPE] and tela_cheia:
+        janela = pg.display.set_mode((LARGURA, ALTURA))
+        tela_cheia = False
+
     retangulo.desenhar_mago(janela)
     
     for j in range(num_arvores):
         locals()['parede' + str(j)].desenhar_parede()
     # há uma pequena chance de surgir um animal cada vez que o loop roda
 
+    
+
     chance = random.randrange(1,500)
     total_vivos = len(Inimigos.inimigos_vivos)
     if total_vivos == 0 or (chance == 1 and total_vivos <= 20): 
         nome = random.choice([j for j in infos.keys()])
-        locals()['inimigo' + str(i)] = Inimigos(infos, nome)
+        locals()['inimigo' + str(i)] = Inimigos(infos, nome, retangulo)
         locals()['inimigo' + str(i)].spawnar(retangulo)
     for inimigo in Inimigos.inimigos_vivos:
         inimigo.desenhar_inimigo(janela)
@@ -172,7 +183,7 @@ while running:
         inimigo = borda(inimigo)
         inimigo = colisao(retangulo, inimigo)
 
-    retangulo.move(pg.key.get_pressed(), variacao_tempo)
+    retangulo.move(keys, variacao_tempo, setas)
 
     tempo_atual = time.time()
     tempo_passado = tempo_atual - comeco_timer
