@@ -53,7 +53,7 @@ class Inimigos(pg.sprite.Sprite):
 
     def desenhar_inimigo(self, janela):
         janela.blit(self.cor, (self.x, self.y))
-
+        
     def morte(self):
     
         Inimigos.inimigos_vivos.remove(self)

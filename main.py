@@ -76,7 +76,7 @@ velocidade_rapida = 0.065
 infos = {
         "Animal 1": {'velocidade': velocidade_devagar, 'referencia': animal1},
         "Animal 2": {'velocidade': velocidade_padrao, 'referencia': animal2},
-        "Animal 3": {'velocidade': velocidade_rapida, 'referencia': animal2}
+        "Animal 3": {'velocidade': velocidade_rapida, 'referencia': animal3}
     }
 
 stamina_padrao = 1000
@@ -91,6 +91,7 @@ setas = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0} # Status de movimento inicia
 running = True
 
 hud = pg.transform.scale(pg.image.load('hud.png'), (1800, 60)) #imagem da madeira do menu inferior
+
 
 #gera cada pequeno pedaço de grama do mapa
 tilemap = []
@@ -190,7 +191,6 @@ for i in range(3):
     locals()['inimigo' + str(i)].spawnar(retangulo, Parede.paredes, Rio.rios)
 
 while running:
-
     # A movimentação é em função do tempo, se rodar muito ciclos ele para e volta dps
     variacao_tempo = clock.tick(30)
 
@@ -218,9 +218,7 @@ while running:
         locals()['parede' + str(j)].desenhar_tronco()
     # há uma pequena chance de surgir um animal cada vez que o loop roda
 
-    retangulo.desenhar_mago(janela)
-
-    chance = random.randrange(1,500)
+    chance = random.randrange(1,400)
     total_vivos = len(Inimigos.inimigos_vivos)
     nenhum = True
     for inimigo in Inimigos.inimigos_vivos:
@@ -233,9 +231,11 @@ while running:
     for inimigo in Inimigos.inimigos_vivos:
         inimigo.desenhar_inimigo(janela)
     
+    retangulo.desenhar_mago(janela) #desenhando o mago
+
     for j in range(num_arvores):
         locals()['parede' + str(j)].desenhar_folhas()
-        
+
     ratio_stamina = retangulo.stamina / 1000
     
     #lugar de informacões
@@ -264,7 +264,6 @@ while running:
     pg.draw.rect(janela, AMARELO, (x_barras, y_barra_stamina, largura_barra * ratio_stamina, altura_barra), border_radius=raio_borda)
     pg.draw.rect(janela, MARROM_ESCURO, (x_barras, y_barra_stamina, largura_barra, altura_barra), espessura, border_radius=raio_borda)
 
-
     #movimentação dos inimigos
     for inimigo in Inimigos.inimigos_vivos:
         inimigo.move(retangulo, variacao_tempo, Parede.paredes, Rio.rios)
@@ -274,6 +273,7 @@ while running:
         inimigo = colisao(retangulo, inimigo)
 
     retangulo.move(keys, variacao_tempo, setas, Parede.paredes, Rio.rios)
+
 
     tempo_atual = time.time()
     tempo_passado = tempo_atual - comeco_timer
