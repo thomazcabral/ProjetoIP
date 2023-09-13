@@ -118,7 +118,7 @@ class Retangulo:
         h = pg.display.get_surface().get_height()
         self.x = x
         self.y = y
-        self.largura = w / 25.6
+        self.largura = w / 25.6 
         self.altura = h / 14.4
         self.velocidade = velocidade
         self.stamina = stamina
@@ -211,9 +211,10 @@ class Retangulo:
         imagem = pg.image.load('mago_down.png')
         w, h = imagem.get_size()
         self.largura = w * escala
-        self.altura = h * escala
+        # como a imagem do mago é gerada 2/3 abaixo do y dele, a hitbox coincide com sua parte mais inferior
+        self.altura = (h * escala) / 3
         redimensionar = pg.transform.smoothscale(self.img, ((w*escala), (h*escala)))
-        janela.blit(redimensionar, (self.x, self.y))
+        janela.blit(redimensionar, (self.x, self.y - 2 * self.altura))
 
 
 class Parede:
@@ -222,7 +223,8 @@ class Parede:
     def __init__(self, proporcao):
         w = pg.display.get_surface().get_width()
         h = pg.display.get_surface().get_height()
-        self.largura = self.altura = ((w + h) / 2) * proporcao
+        self.largura = ((w + h) / 2) * proporcao
+        self.altura = self.largura / 2
         self.raio = Parede.raio 
         escolher = False
         global retangulo
@@ -236,9 +238,25 @@ class Parede:
                     escolher = False
 
         Parede.paredes.append(self)
-    def desenhar_parede(self):
-        pg.draw.rect(janela, PRETO, (self.x, self.y, self.largura, self.altura))
+    #arbitrei mais q tudo pra fazer isso aq, nn faço ideia de como o calculo deveria ser
+    def desenhar_tronco(self):
+        self.img = pg.image.load('tronco.png')
+        x = self.img.get_size()[0]
+        y = self.img.get_size()[1]
+        escala = self.largura * 2/ x
+        redimensionar = pg.transform.smoothscale(self.img, ((x*escala), (y*escala)))
+        janela.blit(redimensionar, (self.x - (self.largura / 2), self.y))
 
+    def desenhar_folhas(self):
+        self.img = pg.image.load('folhas.png')
+        self.img.set_alpha(210)
+        x = self.img.get_size()[0]
+        y = self.img.get_size()[1]
+        escala = self.largura * 3/ x
+        redimensionar = pg.transform.smoothscale(self.img, ((x*escala), (y*escala)))
+        janela.blit(redimensionar, (self.x - (self.largura), self.y - 5 * self.altura))
+
+ 
 
 
 # Colisão com as bordas
@@ -317,7 +335,6 @@ ponto_inicial = (100, 100)
 # Cria o retângulo
 retangulo = Retangulo(ponto_inicial[0], ponto_inicial[1], velocidade_padrao, stamina_padrao) # x, y, largura, altura, velocidade e stamina
 
-
 #cria as paredes
 num_arvores = random.randrange(4,8)
 for j in range(num_arvores):
@@ -340,12 +357,23 @@ setas = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0} # Status de movimento inicia
 running = True
 
 hud = pg.transform.scale(pg.image.load('hud.png'), (1800, 60)) #imagem da madeira do menu inferior
-background = pg.transform.scale(pg.image.load('bg.png'), (1280, 720))
+
+#gera cada pequeno pedaço de grama do mapa
+tilemap = []
+mapa = {}
+for i in range(13):
+    tilemap.append(pg.transform.scale(pg.image.load(f'tile{i + 1}.png'), (50, 50)))
+    for x in range(0, LARGURA, 50):
+        for y in range(0, ALTURA, 50):
+            num1 = random.randrange(1,10)
+            if num1 == 1:
+                num = random.randrange(1, 13)
+            else:
+                num = 0
+            mapa[(x, y)] = num
 
 while running:
-
-    janela.blit(background, (0, 0))
-
+    
     # A movimentação é em função do tempo, se rodar muito ciclos ele para e volta dps
     variacao_tempo = clock.tick(30)
 
@@ -356,10 +384,17 @@ while running:
         if evento.type == pg.QUIT:
             running = False
 
-    retangulo.desenhar_mago(janela)
+    for x in range(0, width, 50):
+        for y in range(0, height, 50):
+            janela.blit(tilemap[mapa[(x, y)]], (x, y))
+
+
     
     for j in range(num_arvores):
-        locals()['parede' + str(j)].desenhar_parede()
+        locals()['parede' + str(j)].desenhar_tronco()
+
+    retangulo.desenhar_mago(janela)
+    
     # há uma pequena chance de surgir um animal cada vez que o loop roda
 
     chance = random.randrange(1,500)
@@ -370,7 +405,9 @@ while running:
         locals()['inimigo' + str(i)].spawnar(retangulo)
     for inimigo in Inimigos.inimigos_vivos:
         inimigo.desenhar_inimigo(janela)
-        
+    
+    for j in range(num_arvores):
+        locals()['parede' + str(j)].desenhar_folhas()
     ratio_stamina = retangulo.stamina / 1000
     
     #lugar de informacões:
