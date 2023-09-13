@@ -1,7 +1,14 @@
 import pygame as pg
-from .utilidades import *
+
 from .parede import Parede
 
+def colisao_amigavel(objeto1, objeto2):
+    if (objeto2.x + objeto2.largura >= objeto1.x >= objeto2.x or objeto1.x + objeto1.largura >= objeto2.x >= objeto1.x) and (objeto2.y + objeto2.altura >= objeto1.y >= objeto2.y or objeto1.y + objeto1.altura >= objeto2.y >= objeto1.y):
+        return True
+
+LARGURA = 1280
+ALTURA = 720
+stamina_padrao = 1000
 
 class Retangulo:
     def __init__(self, x, y, velocidade, stamina):
@@ -17,12 +24,9 @@ class Retangulo:
         self.img = pg.image.load('mago_down.png')
         self.raio = 300
 
-    def move(self, keys, variacao_tempo):
+    def move(self, keys, variacao_tempo, setas):
         global janela
         #método usado pra conferir qual tecla foi usada mais recentemente
-        global setas
-        global stamina_padrao
-        global tela_cheia
         if keys[pg.K_RIGHT] or keys[pg.K_d]:
             setas['RIGHT'] += 1
         else:
@@ -47,13 +51,6 @@ class Retangulo:
                 if not vezes or setas[seta] <= vezes:
                     vezes = setas[seta]
                     escolhida = seta
-        
-        if keys[pg.K_F11] and not tela_cheia:
-            janela = pg.display.set_mode((LARGURA, ALTURA), pg.FULLSCREEN)
-            tela_cheia = True
-        if keys[pg.K_ESCAPE] and tela_cheia:
-            janela = pg.display.set_mode((LARGURA, ALTURA))
-            tela_cheia = False
         
         antigo_x = self.x
         antigo_y = self.y
