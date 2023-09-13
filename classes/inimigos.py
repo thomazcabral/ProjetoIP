@@ -49,8 +49,7 @@ class Inimigos(pg.sprite.Sprite):
                         escolher = False
 
     def desenhar_inimigo(self, janela):
-        pg.draw.rect(janela, self.cor, (self.x, self.y, self.largura, self.altura))
-        pg.draw.rect(janela, self.cor, (self.x, self.y, self.largura, self.altura))
+        janela.blit(self.cor, (self.x, self.y))
         
     def morte(self):
     

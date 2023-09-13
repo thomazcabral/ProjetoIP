@@ -4,6 +4,9 @@ import time
 import random
 from classes import Inimigos, Parede, Retangulo
 
+animal1 = pg.transform.smoothscale(pg.image.load('animal1.png',), (25, 25))
+animal2 = pg.transform.smoothscale(pg.image.load('animal2.png',), (25, 25))
+animal3 = pg.transform.smoothscale(pg.image.load('animal3.png',), (25, 25))
 
 # Colisão com as bordas
 def borda(variavel):
@@ -71,9 +74,9 @@ velocidade_rapida = 0.065
 
 #informações cruciais dos animais
 infos = {
-        "Animal 1": {'velocidade': velocidade_devagar, 'referencia': AZUL},
-        "Animal 2": {'velocidade': velocidade_padrao, 'referencia': VERDE},
-        "Animal 3": {'velocidade': velocidade_rapida, 'referencia': VERMELHO}
+        "Animal 1": {'velocidade': velocidade_devagar, 'referencia': animal1},
+        "Animal 2": {'velocidade': velocidade_padrao, 'referencia': animal2},
+        "Animal 3": {'velocidade': velocidade_rapida, 'referencia': animal3}
     }
 
 stamina_padrao = 1000
@@ -105,9 +108,6 @@ running = True
 
 hud = pg.transform.scale(pg.image.load('hud.png'), (1800, 60)) #imagem da madeira do menu inferior
 
-animal1 = pg.transform.smoothscale(pg.image.load('animal1.png',), (35, 35))
-animal2 = pg.transform.smoothscale(pg.image.load('animal2.png',), (35, 35))
-animal3 = pg.transform.smoothscale(pg.image.load('animal3.png',), (35, 35))
 
 #gera cada pequeno pedaço de grama do mapa
 tilemap = []
@@ -151,9 +151,7 @@ while running:
         locals()['parede' + str(j)].desenhar_tronco()
     # há uma pequena chance de surgir um animal cada vez que o loop roda
 
-    retangulo.desenhar_mago(janela)
-
-    chance = random.randrange(1,500)
+    chance = random.randrange(1,400)
     total_vivos = len(Inimigos.inimigos_vivos)
     if total_vivos == 0 or (chance == 1 and total_vivos <= 20): 
         nome = random.choice([j for j in infos.keys()])
@@ -162,9 +160,11 @@ while running:
     for inimigo in Inimigos.inimigos_vivos:
         inimigo.desenhar_inimigo(janela)
     
+    retangulo.desenhar_mago(janela) #desenhando o mago
+
     for j in range(num_arvores):
         locals()['parede' + str(j)].desenhar_folhas()
-        
+
     ratio_stamina = retangulo.stamina / 1000
     
     #lugar de informacões
@@ -192,7 +192,6 @@ while running:
     # Barra de stamina
     pg.draw.rect(janela, AMARELO, (x_barras, y_barra_stamina, largura_barra * ratio_stamina, altura_barra), border_radius=raio_borda)
     pg.draw.rect(janela, MARROM_ESCURO, (x_barras, y_barra_stamina, largura_barra, altura_barra), espessura, border_radius=raio_borda)
-
 
     #movimentação dos inimigos
     for inimigo in Inimigos.inimigos_vivos:
@@ -224,7 +223,7 @@ while running:
             contador = fonte_contador.render(f'x0{pontos_inimigos[animal]}', True, BRANCO)
         else:
             contador = fonte_contador.render(f'x{pontos_inimigos[animal]}', True, BRANCO) 
-        janela.blit(contador, (x_inicial + 32, ALTURA - 57))
+        janela.blit(contador, (x_inicial + 27, ALTURA - 57))
         x_inicial -= 100
 
     janela.blit(janela, (0,0)) #atualiza o timer e as barras corretamente
