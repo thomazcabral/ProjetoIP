@@ -13,8 +13,8 @@ class Inimigos(pg.sprite.Sprite):
         super().__init__()
         w = pg.display.get_surface().get_width()
         h = pg.display.get_surface().get_height()
-        self.largura = w / (25.6 * 2)
-        self.altura = h / (14.4 * 2)
+        self.largura = w / (25.6)
+        self.altura = h / (14.4)
         self.nome = nome
         self.velocidade_padrao = infos[self.nome]['velocidade']
         self.velocidade = self.velocidade_padrao
@@ -52,9 +52,8 @@ class Inimigos(pg.sprite.Sprite):
                         escolher = False
 
     def desenhar_inimigo(self, janela):
-        pg.draw.rect(janela, self.cor, (self.x, self.y, self.largura, self.altura))
-        pg.draw.rect(janela, self.cor, (self.x, self.y, self.largura, self.altura))
-        
+        janela.blit(self.cor, (self.x, self.y))
+
     def morte(self):
     
         Inimigos.inimigos_vivos.remove(self)

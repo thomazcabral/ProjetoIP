@@ -4,6 +4,9 @@ import time
 import random
 from classes import Inimigos, Parede, Retangulo, Rio
 
+animal1 = pg.transform.smoothscale(pg.image.load('animal1.png',), (50, 50))
+animal2 = pg.transform.smoothscale(pg.image.load('animal2.png',), (50, 50))
+animal3 = pg.transform.smoothscale(pg.image.load('animal3.png',), (50, 50))
 
 # Colisão com as bordas
 def borda(variavel):
@@ -57,7 +60,8 @@ janela = pg.display.set_mode((LARGURA, ALTURA))
 tela_cheia = False
 
 
-fonte = pg.font.Font('CW_BITMP.ttf', 24) #fonte importada para o menu inferior
+fonte_contador = pg.font.Font('CW_BITMP.ttf', 18) #fonte importada para o menu inferior
+fonte_tempo = pg.font.Font('CW_BITMP.ttf', 24)
 duracao_timer = 60 #em segundos
 comeco_timer = time.time() #início do timer
 clock = pg.time.Clock()
@@ -70,9 +74,9 @@ velocidade_rapida = 0.065
 
 #informações cruciais dos animais
 infos = {
-        "Animal 1": {'velocidade': velocidade_devagar, 'referencia': AZUL},
-        "Animal 2": {'velocidade': velocidade_padrao, 'referencia': VERDE},
-        "Animal 3": {'velocidade': velocidade_rapida, 'referencia': VERMELHO}
+        "Animal 1": {'velocidade': velocidade_devagar, 'referencia': animal1},
+        "Animal 2": {'velocidade': velocidade_padrao, 'referencia': animal2},
+        "Animal 3": {'velocidade': velocidade_rapida, 'referencia': animal2}
     }
 
 stamina_padrao = 1000
@@ -275,13 +279,22 @@ while running:
     tempo_passado = tempo_atual - comeco_timer
     tempo_restante = max(0, duracao_timer - tempo_passado) #evite com que o timer dê errado quando acabe
     minutos, segundos = divmod(int(tempo_restante), 60) #faz a divisão correta entre minutos e segundos
-    texto_timer = fonte.render(f'Tempo: {minutos:02d}:{segundos:02d}', True, (0, 0, 0)) #texto, situação de aparecimento, cor
+    texto_timer = fonte_tempo.render(f'Tempo: {minutos:02d}:{segundos:02d}', True, BRANCO) #texto, situação de aparecimento, cor
     janela.blit(texto_timer, (LARGURA - texto_timer.get_width() - 15, ALTURA - 50))
-    x_inicial = LARGURA - texto_timer.get_width() - 200 
-    for animal in reversed(pontos_inimigos.keys()):
-        texto_contador = fonte.render(f'{animal}: {pontos_inimigos[animal]}', True, (0, 0, 0)) #contador dos animais
-        janela.blit(texto_contador, (x_inicial, ALTURA - 50))
-        x_inicial -= 150
+    x_inicial = LARGURA - texto_timer.get_width() - 150
+
+    #Blitando os sprites do animais no contador
+    janela.blit(animal1, (x_inicial - 200, ALTURA - 50))
+    janela.blit(animal2, (x_inicial - 100, ALTURA - 50))
+    janela.blit(animal3, (x_inicial, ALTURA - 50))
+
+    for animal in reversed(pontos_inimigos.keys()): #contador dos animais
+        if pontos_inimigos[animal] < 10:
+            contador = fonte_contador.render(f'x0{pontos_inimigos[animal]}', True, BRANCO)
+        else:
+            contador = fonte_contador.render(f'x{pontos_inimigos[animal]}', True, BRANCO) 
+        janela.blit(contador, (x_inicial + 27, ALTURA - 57))
+        x_inicial -= 100
 
     janela.blit(janela, (0,0)) #atualiza o timer e as barras corretamente
 
