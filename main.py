@@ -11,9 +11,7 @@ animal2 = pg.transform.smoothscale(pg.image.load('assets/animal2.png',), (50, 50
 animal3 = pg.transform.smoothscale(pg.image.load('assets/animal3.png',), (50, 50))
 
 # Colisão com as bordas
-def borda(variavel):
-    global width
-    global height
+def borda(variavel, width, height):
     if variavel.x < 0:
         variavel.x = 0
     if variavel.x > width - variavel.largura:
@@ -35,13 +33,6 @@ def colisao(player, objeto):
 def colisao_amigavel(objeto1, objeto2):
     if (objeto2.x + objeto2.largura >= objeto1.x >= objeto2.x or objeto1.x + objeto1.largura >= objeto2.x >= objeto1.x) and (objeto2.y + objeto2.altura >= objeto1.y >= objeto2.y or objeto1.y + objeto1.altura >= objeto2.y >= objeto1.y):
         return True
-
-# Colisão do player com os animais
-def colisao(player, objeto):
-    if player.x + player.largura >= objeto.x >= player.x or player.x + player.largura >= objeto.x + objeto.largura >= player.x:
-        if player.y + player.altura >= objeto.y >= player.y or player.y + player.altura >= objeto.y + objeto.altura >= player.y:
-            objeto.morte()
-            pontos_inimigos[objeto.nome] += 1
 
 pg.init()
 
@@ -87,15 +78,16 @@ ponto_inicial = (100, 100)
 
 retangulo = Retangulo(ponto_inicial[0], ponto_inicial[1], velocidade_padrao, stamina_padrao)
 
-
 setas = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0} # Status de movimento inicial do retângulo (parado)
+
 # Loop principal
 running = True
-
 
 #gera cada pequeno pedaço de grama do mapa
 tilemap = []
 mapa = {}
+
+#desenho dos detalhes no mapa
 for i in range(14):
     tilemap.append(pg.transform.scale(pg.image.load(f'assets/tile{i + 1}.png'), (50, 50)))
     for x in range(0, LARGURA, 50):
@@ -266,15 +258,15 @@ while running:
 
     #movimentação dos inimigos
     for inimigo in Inimigos.inimigos_vivos:
-        inimigo.move(retangulo, variacao_tempo, Parede.paredes, Rio.rios)
+        inimigo.move(retangulo, variacao_tempo, Parede.paredes, Rio.rios, velocidade_devagar, velocidade_rapida)
     # Colisão com as bordas
-    retangulo = borda(retangulo)
+    retangulo = borda(retangulo, width, height)
     for inimigo in Inimigos.inimigos_vivos: 
         inimigo = colisao(retangulo, inimigo)
 
     retangulo.move(keys, variacao_tempo, setas, Parede.paredes, Rio.rios)
 
-
+    #criação do timer
     tempo_atual = time.time()
     tempo_passado = tempo_atual - comeco_timer
     tempo_restante = max(0, duracao_timer - tempo_passado) #evite com que o timer dê errado quando acabe
