@@ -22,22 +22,38 @@ class Retangulo:
         self.img = pg.image.load('assets/mago_down.png')
         self.raio = 300
 
-    def move(self, keys, variacao_tempo, setas, paredes, rios):
+    def move(self, keys, variacao_tempo, setas, ultima_seta, paredes, rios):
         #método usado pra conferir qual tecla foi usada mais recentemente
         if keys[pg.K_RIGHT] or keys[pg.K_d]:
             setas['RIGHT'] += 1
+            ultima_seta['RIGHT'] = 1
+            ultima_seta['LEFT'] = 0
+            ultima_seta['UP'] = 0
+            ultima_seta['DOWN'] = 0
         else:
             setas['RIGHT'] = 0
         if keys[pg.K_LEFT] or keys[pg.K_a]:
             setas['LEFT'] += 1
+            ultima_seta['RIGHT'] = 0
+            ultima_seta['LEFT'] = 1
+            ultima_seta['UP'] = 0
+            ultima_seta['DOWN'] = 0
         else:
             setas['LEFT'] = 0
         if keys[pg.K_UP] or keys[pg.K_w]:
             setas['UP'] += 1
+            ultima_seta['RIGHT'] = 0
+            ultima_seta['LEFT'] = 0
+            ultima_seta['UP'] = 1
+            ultima_seta['DOWN'] = 0
         else:
             setas['UP'] = 0
         if keys[pg.K_DOWN] or keys[pg.K_s]:
             setas['DOWN'] += 1
+            ultima_seta['RIGHT'] = 0
+            ultima_seta['LEFT'] = 0
+            ultima_seta['UP'] = 0
+            ultima_seta['DOWN'] = 1
         else:
             setas['DOWN'] = 0
         

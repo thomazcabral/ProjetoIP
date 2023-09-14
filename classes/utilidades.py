@@ -11,6 +11,7 @@ LARGURA = 1280
 ALTURA = 720
 janela = pg.display.set_mode((LARGURA, ALTURA))
 PRETO = (0, 0, 0)
+AMARELO = (255, 255, 0)
 
 stamina_padrao = 1000
 velocidade_padrao = 0.0575
@@ -20,5 +21,6 @@ velocidade_devagar = 0.05
 velocidade_rapida = 0.065
 
 setas = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0}
+ultima_seta = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0}
 
 retangulo = Retangulo(ponto_inicial[0], ponto_inicial[1], velocidade_padrao, stamina_padrao)

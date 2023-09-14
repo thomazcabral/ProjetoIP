@@ -2,7 +2,7 @@ import pygame as pg
 import sys
 import time
 import random
-from classes import Inimigos, Parede, Retangulo, Rio
+from classes import Inimigos, Parede, Retangulo, Rio, Projectile
 
 #Imagens
 hud = pg.transform.scale(pg.image.load('assets/hud.png'), (1800, 60)) #imagem da madeira do menu inferior
@@ -78,7 +78,8 @@ ponto_inicial = (100, 100)
 
 retangulo = Retangulo(ponto_inicial[0], ponto_inicial[1], velocidade_padrao, stamina_padrao)
 
-setas = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0} # Status de movimento inicial do retângulo (parado)
+setas = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0}
+ultima_seta = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0}
 
 # Loop principal
 running = True
@@ -182,6 +183,14 @@ for i in range(3):
     locals()['inimigo' + str(i)] = Inimigos(infos, nome, retangulo)
     locals()['inimigo' + str(i)].spawnar(retangulo, Parede.paredes, Rio.rios)
 
+
+def draw_bullets():
+    for bullet in bullets:
+        bullet.draw(janela)
+
+#loop main
+bullets = []
+
 while running:
     # A movimentação é em função do tempo, se rodar muito ciclos ele para e volta dps
     variacao_tempo = clock.tick(30)
@@ -192,6 +201,19 @@ while running:
     for evento in pg.event.get():
         if evento.type == pg.QUIT:
             running = False
+
+    for parede in Parede.paredes:
+        for bullet in bullets:
+            if bullet.x < 1280 and bullet.x > 0:
+                bullet.x += bullet.vel_x
+            else:
+                bullets.pop(bullets.index(bullet))
+            if bullet.y < 720 and bullet.y > 0:
+                bullet.y += bullet.vel_y
+            else:
+                bullets.pop(bullets.index(bullet))
+            if colisao_amigavel(bullet, parede):
+                bullets.pop(bullets.index(bullet))
 
     keys = pg.key.get_pressed()
 
@@ -206,6 +228,8 @@ while running:
         for y in range(0, height, 50):
             janela.blit(tilemap[mapa[(x, y)]], (x, y))
     
+    draw_bullets()
+
     for j in range(num_arvores):
         locals()['parede' + str(j)].desenhar_tronco()
     # há uma pequena chance de surgir um animal cada vez que o loop roda
@@ -264,7 +288,7 @@ while running:
     for inimigo in Inimigos.inimigos_vivos: 
         inimigo = colisao(retangulo, inimigo)
 
-    retangulo.move(keys, variacao_tempo, setas, Parede.paredes, Rio.rios)
+    retangulo.move(keys, variacao_tempo, setas, ultima_seta, Parede.paredes, Rio.rios)
 
     #criação do timer
     tempo_atual = time.time()
@@ -287,6 +311,24 @@ while running:
             contador = fonte_contador.render(f'x{pontos_inimigos[animal]}', True, BRANCO) 
         janela.blit(contador, (x_inicial + 27, ALTURA - 57))
         x_inicial -= 100
+
+    if keys[pg.K_SPACE]:
+        if ultima_seta['LEFT'] != 0:
+            facing_x = -1
+            facing_y = 0
+        elif ultima_seta['RIGHT'] != 0:
+            facing_x = 1
+            facing_y = 0
+        elif ultima_seta['UP'] != 0:
+            facing_y = -1
+            facing_x = 0
+        elif ultima_seta['DOWN'] != 0:
+            facing_y = 1
+            facing_x = 0
+
+
+        if len(bullets) < 10:
+            bullets.append(Projectile(round(retangulo.x + retangulo.largura //2), round(retangulo.y + retangulo.altura//2), 4, facing_x, facing_y))
 
     janela.blit(janela, (0,0)) #atualiza o timer e as barras corretamente
 
