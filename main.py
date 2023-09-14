@@ -2,7 +2,7 @@ import pygame as pg
 import sys
 import time
 import random
-from classes import Inimigos, Parede, Retangulo, Rio, Lobo
+from classes import Inimigos, Parede, Retangulo, Rio, Projectile, Lobo
 
 #Imagens
 hud = pg.transform.scale(pg.image.load('assets/hud.png'), (1800, 60)) #imagem da madeira do menu inferior
@@ -12,9 +12,7 @@ animal3 = pg.transform.smoothscale(pg.image.load('assets/animal3.png',), (50, 50
 quadrado = pg.transform.smoothscale(pg.image.load('assets/quadradov.png',), (50, 50))
 
 # Colisão com as bordas
-def borda(variavel):
-    global width
-    global height
+def borda(variavel, width, height):
     if variavel.x < 0:
         variavel.x = 0
     if variavel.x > width - variavel.largura:
@@ -37,11 +35,62 @@ def colisao_amigavel(objeto1, objeto2):
     if (objeto2.x + objeto2.largura >= objeto1.x >= objeto2.x or objeto1.x + objeto1.largura >= objeto2.x >= objeto1.x) and (objeto2.y + objeto2.altura >= objeto1.y >= objeto2.y or objeto1.y + objeto1.altura >= objeto2.y >= objeto1.y):
         return True
 
-# Colisão do player com os animais
-def morte_mago(player, objeto, vida_padrao):
+def dano_lobo(player, objeto):
     if player.x + player.largura >= objeto.x >= player.x or player.x + player.largura >= objeto.x + objeto.largura >= player.x:
         if player.y + player.altura >= objeto.y >= player.y or player.y + player.altura >= objeto.y + objeto.altura >= player.y:
-            vida_padrao -= 20
+            player.vida -= 10
+            if player.vida <= 0:
+                player.vida = 0
+
+#cria as bordas do rio
+def contorno_rio(mapa, x_vez, y_vez):
+    if (x_vez, y_vez + 100) in mapa.keys():
+        if mapa[(x_vez, y_vez + 100)] != 13 and mapa[(x_vez, y_vez + 100)] != 14:
+            if mapa[(x_vez, y_vez + 100)] == 16:
+                mapa[(x_vez, y_vez + 100)] = 19
+            else:
+                mapa[(x_vez, y_vez + 100)] = 15
+            if (x_vez + 50, y_vez + 100) in mapa.keys():
+                if mapa[(x_vez + 50, y_vez + 100)] == 18:
+                    mapa[(x_vez + 50, y_vez + 100)] = 22
+                else:
+                    mapa[(x_vez + 50, y_vez + 100)] = 15
+    if (x_vez + 100, y_vez) in mapa.keys():
+        if mapa[(x_vez + 100, y_vez)] != 13 and mapa[(x_vez + 100, y_vez)] != 14:
+            if  mapa[(x_vez + 100, y_vez)] == 15:
+                mapa[(x_vez + 100, y_vez)] = 19
+            else:
+                mapa[(x_vez + 100, y_vez)] = 16   
+    if (x_vez + 100, y_vez + 50) in mapa.keys():
+        if mapa[(x_vez + 100, y_vez + 50)] != 13 and mapa[(x_vez + 100, y_vez + 50)] != 14:
+            if mapa[(x_vez + 100, y_vez + 50)] == 17:
+                mapa[(x_vez + 100, y_vez + 50)] = 20
+            else:
+                mapa[(x_vez + 100, y_vez + 50)] = 16
+    if (x_vez, y_vez - 50) in mapa.keys():
+        if mapa[(x_vez, y_vez - 50)] != 13 and mapa[(x_vez, y_vez - 50)] != 14:
+            if mapa[(x_vez, y_vez - 50)] == 16:
+                mapa[(x_vez, y_vez - 50)] = 20
+            else:
+                mapa[(x_vez, y_vez - 50)] = 17
+    if (x_vez + 50, y_vez - 50) in mapa.keys():
+        if mapa[(x_vez + 50, y_vez - 50)] != 13 and mapa[(x_vez + 50, y_vez - 50)] != 14:
+            if mapa[(x_vez + 50, y_vez - 50)] == 18:
+                mapa[(x_vez + 50, y_vez - 50)] = 21
+            else:
+                mapa[(x_vez + 50, y_vez - 50)] = 17
+    if (x_vez - 50, y_vez) in mapa.keys():
+        if mapa[(x_vez - 50, y_vez)] != 13 and mapa[(x_vez - 50, y_vez)] != 14:
+            if mapa[(x_vez - 50, y_vez)] == 15:
+                mapa[(x_vez - 50, y_vez)] = 22
+            else:
+                mapa[(x_vez - 50, y_vez)] = 18
+    if (x_vez -50, y_vez + 50) in mapa.keys():
+        if mapa[(x_vez -50, y_vez + 50)] != 13 and mapa[(x_vez -50, y_vez + 50)] != 14:
+            if mapa[(x_vez -50, y_vez + 50)] == 17:
+                mapa[(x_vez -50, y_vez + 50)] = 21
+            else:
+                mapa[(x_vez -50, y_vez + 50)] = 18
 
 pg.init()
 
@@ -62,7 +111,8 @@ janela = pg.display.set_mode((LARGURA, ALTURA))
 tela_cheia = False
 
 
-fonte = pg.font.Font('CW_BITMP.ttf', 24) #fonte importada para o menu inferior
+fonte_contador = pg.font.Font('assets/CW_BITMP.ttf', 18) #fonte importada para o menu inferior
+fonte_tempo = pg.font.Font('assets/CW_BITMP.ttf', 24)
 duracao_timer = 60 #em segundos
 comeco_timer = time.time() #início do timer
 clock = pg.time.Clock()
@@ -75,9 +125,9 @@ velocidade_rapida = 0.065
 
 #informações cruciais dos animais
 infos = {
-        "Animal 1": {'velocidade': velocidade_devagar, 'referencia': AZUL},
-        "Animal 2": {'velocidade': velocidade_padrao, 'referencia': VERDE},
-        "Animal 3": {'velocidade': velocidade_rapida, 'referencia': VERMELHO}
+        "Animal 1": {'velocidade': velocidade_devagar, 'referencia': animal1},
+        "Animal 2": {'velocidade': velocidade_padrao, 'referencia': animal2},
+        "Animal 3": {'velocidade': velocidade_rapida, 'referencia': animal3}
     }
 
 info_lobo = {"Lobo": {'velocidade': velocidade_padrao, 'referencia': quadrado}}
@@ -87,14 +137,132 @@ vida_padrao = 1000
 
 ponto_inicial = (100, 100)
 
+
+setas = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0}
+ultima_seta = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0}
+
+# Loop principal
+running = True
+
+#gera cada pequeno pedaço de grama do mapa
+tilemap = []
+mapa = {}
+
+#desenho dos detalhes no mapa
+for i in range(27):
+    tilemap.append(pg.transform.scale(pg.image.load(f'assets/tile{i + 1}.png'), (50, 50)))
+for x in range(0, LARGURA, 50):
+    for y in range(0, ALTURA, 50):
+        num1 = random.randrange(1,10)
+        if num1 == 1:
+            num = random.randrange(1, 13)
+        else:
+            num = 0
+        mapa[(x, y)] = num
+
+direcoes = ['direita', 'esquerda', 'baixo', 'cima']
+direcoes2 = direcoes.copy()
+foz = False
+direcao_rio_inicial = random.choice(direcoes)
+direcoes2.pop(direcoes.index(direcao_rio_inicial))
+direcao_rio_final = random.choice(direcoes2)
+fluxo_rio = [direcao_rio_inicial, direcao_rio_final]
+direcao_rio = direcao_rio_inicial
+if ('direita' in fluxo_rio and 'esquerda' in fluxo_rio) or ('cima' in fluxo_rio and 'baixo' in fluxo_rio):
+    fluxo_rio = direcoes
+    fluxo_rio.remove(direcao_rio_final)
+
+if direcao_rio_inicial == 'direita':
+    y = random.randrange(0, ALTURA, 100)
+    mapa[(0, y)] = mapa[(50, y)] = mapa[(0, y + 50)] = mapa[(50, y + 50)] = 13
+    x_vez = 0
+    y_vez = y
+elif direcao_rio_inicial == 'esquerda':
+    y = random.randrange(0, ALTURA, 100)
+    ultimo = LARGURA
+    while ultimo % 50 != 0:
+        ultimo -= 1
+    ultimo -= 50
+    mapa[(ultimo, y)] = mapa[(ultimo + 50, y)] = mapa[(ultimo, y + 50)] = mapa[(ultimo + 50, y + 50)] = 13
+    x_vez = ultimo
+    y_vez = y
+elif direcao_rio_inicial == 'baixo':
+    x = random.randrange(0, LARGURA, 100)
+    mapa[(x, 0)] = mapa[(x, 50)] = mapa[(x + 50, 0)] = mapa[(x + 50, 50)] = 13
+    x_vez = x
+    y_vez = 0
+elif direcao_rio_inicial == 'cima':
+    x = random.randrange(0, LARGURA, 100)
+    ultimo = ALTURA
+    while ultimo % 50 != 0:
+        ultimo -= 1
+    ultimo -= 50
+    mapa[(x, ultimo)] = mapa[(x, ultimo + 50)] = mapa[(x + 50, ultimo)] = mapa[(x + 50, ultimo + 50)] = 13
+    x_vez = x
+    y_vez = ultimo
+Rio(x_vez, y_vez)
+contorno_rio(mapa, x_vez, y_vez)
+
+while not foz:
+    if direcao_rio == direcao_rio_inicial:
+        direcao_rio = random.choice(fluxo_rio)
+    else:
+        direcao_rio = direcao_rio_inicial
+    if direcao_rio == 'direita':
+        x_vez += 100
+        if x_vez + 150 > LARGURA:
+                foz = True
+        mapa[(x_vez, y_vez)] = mapa[(x_vez, y_vez + 50)] = mapa[(x_vez + 50, y_vez)] = mapa[(x_vez + 50, y_vez + 50)] = 13
+    elif direcao_rio == 'esquerda':
+        x_vez -= 100
+        if x_vez <= 0:
+            foz = True
+        mapa[(x_vez, y_vez)] = mapa[(x_vez, y_vez + 50)] = mapa[(x_vez + 50, y_vez)] = mapa[(x_vez + 50, y_vez + 50)] = 13
+    elif direcao_rio == 'baixo':
+        y_vez += 100
+        if y_vez + 100 > ALTURA:
+            foz = True
+        mapa[(x_vez, y_vez)] = mapa[(x_vez, y_vez + 50)] = mapa[(x_vez + 50, y_vez)] = mapa[(x_vez + 50, y_vez + 50)] = 14
+    elif direcao_rio == 'cima':
+        y_vez -= 100
+        if y_vez <= 0:
+            foz = True
+        mapa[(x_vez, y_vez)] = mapa[(x_vez, y_vez + 50)] = mapa[(x_vez + 50, y_vez)] = mapa[(x_vez + 50, y_vez + 50)] = 14
+    contorno_rio(mapa, x_vez, y_vez)
+    Rio(x_vez, y_vez)
+
+#cria as bordas abertas do rio
+for (x, y) in mapa.keys():
+    if (x + 50, y) in mapa.keys() and (x, y + 50) in mapa.keys():
+        if mapa[((x + 50, y))] == 17 and mapa[((x, y + 50))] == 18:
+            mapa[(x, y)] = 23
+    if (x - 50, y) in mapa.keys() and (x, y + 50) in mapa.keys():
+        if mapa[((x - 50, y))] == 17 and mapa[((x, y + 50))] == 16:
+            mapa[(x, y)] = 24
+    if (x + 50, y) in mapa.keys() and (x, y - 50) in mapa.keys():
+        if mapa[((x + 50, y))] == 15 and mapa[((x, y - 50))] == 18:
+            mapa[(x, y)] = 25
+    if (x - 50, y) in mapa.keys() and (x, y + 50) in mapa.keys():
+        if mapa[((x - 50, y))] == 15 and mapa[((x, y + 50))] == 16:
+            mapa[(x, y)] = 26
+    
+#cria o jogador 
+escolheu = False
+while not escolheu:
+    x = random.randrange(0, LARGURA, 50)
+    y = random.randrange(100, ALTURA, 50)
+    if mapa[(x, y)] != 13:
+        escolheu = True
+        ponto_inicial = (x, y)
+
 retangulo = Retangulo(ponto_inicial[0], ponto_inicial[1], velocidade_padrao, stamina_padrao, vida_padrao)
 
 #cria as paredes
 num_arvores = random.randrange(4,8)
 for j in range(num_arvores):
-    locals()['parede' + str(j)] = Parede(0.05, retangulo)
+    locals()['parede' + str(j)] = Parede(0.05, retangulo, Rio.rios)
 
-# Spawnar os animais, foi escolhido 3 mas é arbitrário
+# Spawnar os animais, foi escolhido 3, mas pode ser arbitrário
 
 pontos_inimigos = {}
 for animal in infos.keys():
@@ -102,19 +270,22 @@ for animal in infos.keys():
 for i in range(3):
     nome = random.choice([k for k in infos.keys()])
     locals()['inimigo' + str(i)] = Inimigos(infos, nome, retangulo)
-    locals()['inimigo' + str(i)].spawnar(retangulo)
+    locals()['inimigo' + str(i)].spawnar(retangulo, Parede.paredes, Rio.rios)
 
-setas = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0} # Status de movimento inicial do retângulo (parado)
-# Loop principal
-running = True
 
-hud = pg.transform.scale(pg.image.load('hud.png'), (1800, 60)) #imagem da madeira do menu inferior
-background = pg.transform.scale(pg.image.load('bg.png'), (1280, 720))
+def draw_bullets():
+    for bullet in bullets:
+        bullet.draw(janela)
+
+vida_lobo = 450
+lobo = Lobo(info_lobo, "Lobo", retangulo, vida_lobo)
+lobo.spawnar(retangulo, Parede.paredes, Rio.rios)
+
+
+#loop main
+bullets = []
 
 while running:
-
-    janela.blit(background, (0, 0))
-
     # A movimentação é em função do tempo, se rodar muito ciclos ele para e volta dps
     variacao_tempo = clock.tick(30)
 
@@ -125,6 +296,19 @@ while running:
         if evento.type == pg.QUIT:
             running = False
 
+    for parede in Parede.paredes:
+        for bullet in bullets:
+            if bullet.x < 1280 and bullet.x > 0:
+                bullet.x += bullet.vel_x
+            else:
+                bullets.pop(bullets.index(bullet))
+            if bullet.y < 720 and bullet.y > 0:
+                bullet.y += bullet.vel_y
+            else:
+                bullets.pop(bullets.index(bullet))
+            if colisao_amigavel(bullet, parede):
+                bullets.pop(bullets.index(bullet))
+
     keys = pg.key.get_pressed()
 
     if keys[pg.K_F11] and not tela_cheia:
@@ -134,28 +318,30 @@ while running:
         janela = pg.display.set_mode((LARGURA, ALTURA))
         tela_cheia = False
 
-    retangulo.desenhar_mago(janela)
+    for x in range(0, width, 50):
+        for y in range(0, height, 50):
+            janela.blit(tilemap[mapa[(x, y)]], (x, y))
     
+    draw_bullets()
+
     for j in range(num_arvores):
-        locals()['parede' + str(j)].desenhar_parede()
+        locals()['parede' + str(j)].desenhar_tronco()
     # há uma pequena chance de surgir um animal cada vez que o loop roda
 
-
-    chance = random.randrange(1,500)
+    chance = random.randrange(1,400)
     total_vivos = len(Inimigos.inimigos_vivos)
-    if total_vivos == 0 or (chance == 1 and total_vivos <= 20): 
+    nenhum = True
+    for inimigo in Inimigos.inimigos_vivos:
+        if not (inimigo.x < -1 * inimigo.largura or inimigo.x >= width or inimigo.y < -1 * inimigo.altura or inimigo.y > height):
+            nenhum = False
+    if nenhum or total_vivos == 0 or (chance == 1 and total_vivos <= 20): 
         nome = random.choice([j for j in infos.keys()])
         locals()['inimigo' + str(i)] = Inimigos(infos, nome, retangulo)
-        locals()['inimigo' + str(i)].spawnar(retangulo)
+        locals()['inimigo' + str(i)].spawnar(retangulo, Parede.paredes, Rio.rios)
     for inimigo in Inimigos.inimigos_vivos:
         inimigo.desenhar_inimigo(janela)
     
     retangulo.desenhar_mago(janela) #desenhando o mago
-
-    chance_lobo = random.randrange(1, 200)
-    if chance_lobo == 2:
-        lobo = Lobo(info_lobo, "Lobo", retangulo)
-        lobo.spawnar(retangulo, Parede.paredes, Rio.rios)
 
     for a in Lobo.lobos_vivos:
         a.desenhar_lobo(janela)
@@ -177,7 +363,7 @@ while running:
     x_barras = width / (LARGURA/10)
     y_barra_stamina = height / (ALTURA/(ALTURA - 28))
     y_barra_vida = height / (ALTURA/(ALTURA - 44))
-
+    
     #Fundo barra de stamina
     pg.draw.rect(janela, CINZA, (x_barras, y_barra_stamina, largura_barra, altura_barra), border_radius=raio_borda)
 
@@ -192,37 +378,60 @@ while running:
     pg.draw.rect(janela, AMARELO, (x_barras, y_barra_stamina, largura_barra * ratio_stamina, altura_barra), border_radius=raio_borda)
     pg.draw.rect(janela, MARROM_ESCURO, (x_barras, y_barra_stamina, largura_barra, altura_barra), espessura, border_radius=raio_borda)
 
-
     #movimentação dos inimigos
     for inimigo in Inimigos.inimigos_vivos:
-        inimigo.move(retangulo, variacao_tempo)
+        inimigo.move(retangulo, variacao_tempo, Parede.paredes, Rio.rios, velocidade_devagar, velocidade_rapida)
     # Colisão com as bordas
-    retangulo = borda(retangulo)
+    retangulo = borda(retangulo, width, height)
     for inimigo in Inimigos.inimigos_vivos: 
-        inimigo = borda(inimigo)
         inimigo = colisao(retangulo, inimigo)
 
-    retangulo.move(keys, variacao_tempo, setas)
-    retangulo.move(keys, variacao_tempo, setas, Parede.paredes, Rio.rios)
+    retangulo.move(keys, variacao_tempo, setas, ultima_seta, Parede.paredes, Rio.rios)
     for lobo in Lobo.lobos_vivos:
-        lobo.move(retangulo, variacao_tempo, Parede.paredes, Rio.rios)
-    
-    for lobo in Lobo.lobos_vivos: 
-        lobo = morte_mago(retangulo, lobo, vida_padrao)
+        lobo.move(retangulo, variacao_tempo, Parede.paredes, Rio.rios, velocidade_devagar, velocidade_rapida)
 
+    for lobo in Lobo.lobos_vivos:  
+        lobo = dano_lobo(retangulo, lobo)
 
-
+    #criação do timer
     tempo_atual = time.time()
     tempo_passado = tempo_atual - comeco_timer
     tempo_restante = max(0, duracao_timer - tempo_passado) #evite com que o timer dê errado quando acabe
     minutos, segundos = divmod(int(tempo_restante), 60) #faz a divisão correta entre minutos e segundos
-    texto_timer = fonte.render(f'Tempo: {minutos:02d}:{segundos:02d}', True, (0, 0, 0)) #texto, situação de aparecimento, cor
+    texto_timer = fonte_tempo.render(f'Tempo: {minutos:02d}:{segundos:02d}', True, BRANCO) #texto, situação de aparecimento, cor
     janela.blit(texto_timer, (LARGURA - texto_timer.get_width() - 15, ALTURA - 50))
-    x_inicial = LARGURA - texto_timer.get_width() - 200 
-    for animal in reversed(pontos_inimigos.keys()):
-        texto_contador = fonte.render(f'{animal}: {pontos_inimigos[animal]}', True, (0, 0, 0)) #contador dos animais
-        janela.blit(texto_contador, (x_inicial, ALTURA - 50))
-        x_inicial -= 150
+    x_inicial = LARGURA - texto_timer.get_width() - 150
+
+    #Blitando os sprites do animais no contador
+    janela.blit(animal1, (x_inicial - 200, ALTURA - 50))
+    janela.blit(animal2, (x_inicial - 100, ALTURA - 50))
+    janela.blit(animal3, (x_inicial, ALTURA - 50))
+
+    for animal in reversed(pontos_inimigos.keys()): #contador dos animais
+        if pontos_inimigos[animal] < 10:
+            contador = fonte_contador.render(f'x0{pontos_inimigos[animal]}', True, BRANCO)
+        else:
+            contador = fonte_contador.render(f'x{pontos_inimigos[animal]}', True, BRANCO) 
+        janela.blit(contador, (x_inicial + 27, ALTURA - 57))
+        x_inicial -= 100
+
+    if keys[pg.K_SPACE]:
+        if ultima_seta['LEFT'] != 0:
+            facing_x = -1
+            facing_y = 0
+        elif ultima_seta['RIGHT'] != 0:
+            facing_x = 1
+            facing_y = 0
+        elif ultima_seta['UP'] != 0:
+            facing_y = -1
+            facing_x = 0
+        else:
+            facing_y = 1
+            facing_x = 0
+
+
+        if len(bullets) < 10:
+            bullets.append(Projectile(round(retangulo.x + retangulo.largura //2), round(retangulo.y + retangulo.altura//2), 4, facing_x, facing_y))
 
     janela.blit(janela, (0,0)) #atualiza o timer e as barras corretamente
 
