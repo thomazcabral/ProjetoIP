@@ -2,9 +2,6 @@ import pygame as pg
 import random
 from .utilidades import *
 
-stamina_padrao = 1000
-janela = pg.display.set_mode((LARGURA, ALTURA))
-
 class Inimigos(pg.sprite.Sprite):
     # Responsável por cada animal vivo
     inimigos_vivos = []
@@ -13,8 +10,8 @@ class Inimigos(pg.sprite.Sprite):
         super().__init__()
         w = pg.display.get_surface().get_width()
         h = pg.display.get_surface().get_height()
-        self.largura = w / (25.6 * 2)
-        self.altura = h / (14.4 * 2)
+        self.largura = w / (25.6)
+        self.altura = h / (14.4)
         self.nome = nome
         self.velocidade_padrao = infos[self.nome]['velocidade']
         self.velocidade = self.velocidade_padrao
@@ -32,8 +29,8 @@ class Inimigos(pg.sprite.Sprite):
         h = pg.display.get_surface().get_height()	
         escolher = False
         while not escolher:	
-            valorx = random.randrange(0, w)	
-            valory = random.randrange(0, h - 60)
+            valorx = random.randint(0, w)	
+            valory = random.randint(0, h - 60)
             # Só irão nascer animais em um raio maior que 300 px
             if ((retangulo.x + (retangulo.largura / 2) - valorx) ** 2 + (retangulo.y + (retangulo.altura / 2) - valory)** 2) ** (1/2) >= retangulo.raio:	
                 self.x = valorx	
@@ -52,16 +49,12 @@ class Inimigos(pg.sprite.Sprite):
                         escolher = False
 
     def desenhar_inimigo(self, janela):
-        pg.draw.rect(janela, self.cor, (self.x, self.y, self.largura, self.altura))
-        pg.draw.rect(janela, self.cor, (self.x, self.y, self.largura, self.altura))
+        janela.blit(self.cor, (self.x, self.y))
         
     def morte(self):
-    
         Inimigos.inimigos_vivos.remove(self)
     
-    def move(self, retangulo, variacao_tempo, paredes, rios):
-        global velocidade_devagar
-        global velocidade_rapida
+    def move(self, retangulo, variacao_tempo, paredes, rios, velocidade_devagar, velocidade_rapida):
         raio_alerta = retangulo.raio
         if retangulo.velocidade == velocidade_rapida:
             raio_alerta = raio_alerta * 1.5
@@ -74,8 +67,8 @@ class Inimigos(pg.sprite.Sprite):
         direcoes = ['direita', 'esquerda', 'baixo', 'cima']
         if not self.direcao and self.repouso == 0:
             self.direcao = random.choice(direcoes)
-            self.repouso = random.randrange(160, 240)
-            self.mov_idle = random.randrange(120,150)
+            self.repouso = random.randint(160, 240)
+            self.mov_idle = random.randint(120,150)
             self.velocidade = self.velocidade_idle
         if self.mov_idle == 0:
             self.direcao = False

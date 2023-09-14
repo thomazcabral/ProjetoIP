@@ -1,6 +1,5 @@
 import pygame as pg
-
-from .parede import Parede
+import random
 
 def colisao_amigavel(objeto1, objeto2):
     if (objeto2.x + objeto2.largura >= objeto1.x >= objeto2.x or objeto1.x + objeto1.largura >= objeto2.x >= objeto1.x) and (objeto2.y + objeto2.altura >= objeto1.y >= objeto2.y or objeto1.y + objeto1.altura >= objeto2.y >= objeto1.y):
@@ -11,36 +10,57 @@ ALTURA = 720
 stamina_padrao = 1000
 
 class Retangulo:
-    def __init__(self, x, y, velocidade, stamina):
+    def __init__(self, velocidade, stamina, rios):
         w = pg.display.get_surface().get_width()
         h = pg.display.get_surface().get_height()
-        self.x = x
-        self.y = y
         self.largura = w / 25.6
         self.altura = h / 14.4
+        escolheu = False
+        while not escolheu:
+            escolheu = True
+            self.x = random.randrange(0, LARGURA, 50)
+            self.y = random.randrange(100, ALTURA, 50)
+            for rio in rios:
+                if colisao_amigavel(self, rio):
+                    escolheu = False
         self.velocidade = velocidade
         self.stamina = stamina
         self.cansaco = 0
-        self.img = pg.image.load('mago_down.png')
+        self.img = pg.image.load('assets/mago_down.png')
         self.raio = 300
 
-    def move(self, keys, variacao_tempo, setas, paredes, rios):
-        global janela
+    def move(self, keys, variacao_tempo, setas, ultima_seta, paredes, rios):
         #método usado pra conferir qual tecla foi usada mais recentemente
         if keys[pg.K_RIGHT] or keys[pg.K_d]:
             setas['RIGHT'] += 1
+            ultima_seta['RIGHT'] = 1
+            ultima_seta['LEFT'] = 0
+            ultima_seta['UP'] = 0
+            ultima_seta['DOWN'] = 0
         else:
             setas['RIGHT'] = 0
         if keys[pg.K_LEFT] or keys[pg.K_a]:
             setas['LEFT'] += 1
+            ultima_seta['RIGHT'] = 0
+            ultima_seta['LEFT'] = 1
+            ultima_seta['UP'] = 0
+            ultima_seta['DOWN'] = 0
         else:
             setas['LEFT'] = 0
         if keys[pg.K_UP] or keys[pg.K_w]:
             setas['UP'] += 1
+            ultima_seta['RIGHT'] = 0
+            ultima_seta['LEFT'] = 0
+            ultima_seta['UP'] = 1
+            ultima_seta['DOWN'] = 0
         else:
             setas['UP'] = 0
         if keys[pg.K_DOWN] or keys[pg.K_s]:
             setas['DOWN'] += 1
+            ultima_seta['RIGHT'] = 0
+            ultima_seta['LEFT'] = 0
+            ultima_seta['UP'] = 0
+            ultima_seta['DOWN'] = 1
         else:
             setas['DOWN'] = 0
         
@@ -56,19 +76,19 @@ class Retangulo:
         antigo_y = self.y
         if escolhida:
             if escolhida == 'RIGHT':
-                self.img = pg.image.load('mago_right.png')
+                self.img = pg.image.load('assets/mago_right.png')
                 self.x += self.velocidade * variacao_tempo
             elif escolhida == 'LEFT':
-                self.img = pg.image.load('mago_left.png')
+                self.img = pg.image.load('assets/mago_left.png')
                 self.x -= self.velocidade * variacao_tempo
             elif escolhida == 'UP':
-                self.img = pg.image.load('mago_up.png')
+                self.img = pg.image.load('assets/mago_up.png')
                 self.y -= self.velocidade * variacao_tempo
             elif escolhida == 'DOWN':
-                self.img = pg.image.load('mago_down.png')
+                self.img = pg.image.load('assets/mago_down.png')
                 self.y += self.velocidade * variacao_tempo
             else:
-                self.img = pg.image.load('mago_down.png')
+                self.img = pg.image.load('assets/mago_down.png')
         bloqueio = []
         for k in paredes:
             bloqueio.append(k)
@@ -97,10 +117,8 @@ class Retangulo:
             self.cansaco -= 1
             
     def desenhar_mago(self, janela):
-        global width
-        global height
         escala = 1/4
-        imagem = pg.image.load('mago_down.png')
+        imagem = pg.image.load('assets/mago_down.png')
         w, h = imagem.get_size()
         self.largura = w * escala
         # como a imagem do mago é gerada 2/3 abaixo do y dele, a hitbox coincide com sua parte mais inferior
