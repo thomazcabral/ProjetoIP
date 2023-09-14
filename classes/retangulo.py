@@ -1,7 +1,5 @@
 import pygame as pg
 
-from .parede import Parede
-
 def colisao_amigavel(objeto1, objeto2):
     if (objeto2.x + objeto2.largura >= objeto1.x >= objeto2.x or objeto1.x + objeto1.largura >= objeto2.x >= objeto1.x) and (objeto2.y + objeto2.altura >= objeto1.y >= objeto2.y or objeto1.y + objeto1.altura >= objeto2.y >= objeto1.y):
         return True
@@ -25,7 +23,6 @@ class Retangulo:
         self.raio = 300
 
     def move(self, keys, variacao_tempo, setas, paredes, rios):
-        global janela
         #método usado pra conferir qual tecla foi usada mais recentemente
         if keys[pg.K_RIGHT] or keys[pg.K_d]:
             setas['RIGHT'] += 1
@@ -97,8 +94,6 @@ class Retangulo:
             self.cansaco -= 1
             
     def desenhar_mago(self, janela):
-        global width
-        global height
         escala = 1/4
         imagem = pg.image.load('assets/mago_down.png')
         w, h = imagem.get_size()
