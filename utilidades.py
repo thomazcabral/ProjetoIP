@@ -1,5 +1,3 @@
-#certeza que isso aqui tá feio, tem como melhorar
-
 import pygame as pg
 from .retangulo import Retangulo
 
@@ -12,7 +10,7 @@ ALTURA = 720
 janela = pg.display.set_mode((LARGURA, ALTURA))
 PRETO = (0, 0, 0)
 
-stamina_padrao = 1000
+stamina_padrao = vida_padrao = 1000
 velocidade_padrao = 0.0575
 ponto_inicial = (100, 100)
 
@@ -21,4 +19,4 @@ velocidade_rapida = 0.065
 
 setas = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0}
 
-retangulo = Retangulo(ponto_inicial[0], ponto_inicial[1], velocidade_padrao, stamina_padrao)
+retangulo = Retangulo(ponto_inicial[0], ponto_inicial[1], velocidade_padrao, stamina_padrao, vida_padrao)
