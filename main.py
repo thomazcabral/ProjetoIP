@@ -34,6 +34,56 @@ def colisao_amigavel(objeto1, objeto2):
     if (objeto2.x + objeto2.largura >= objeto1.x >= objeto2.x or objeto1.x + objeto1.largura >= objeto2.x >= objeto1.x) and (objeto2.y + objeto2.altura >= objeto1.y >= objeto2.y or objeto1.y + objeto1.altura >= objeto2.y >= objeto1.y):
         return True
 
+#cria as bordas do rio
+def contorno_rio(mapa, x_vez, y_vez):
+    if (x_vez, y_vez + 100) in mapa.keys():
+        if mapa[(x_vez, y_vez + 100)] != 13 and mapa[(x_vez, y_vez + 100)] != 14:
+            if mapa[(x_vez, y_vez + 100)] == 16:
+                mapa[(x_vez, y_vez + 100)] = 19
+            else:
+                mapa[(x_vez, y_vez + 100)] = 15
+            if (x_vez + 50, y_vez + 100) in mapa.keys():
+                if mapa[(x_vez + 50, y_vez + 100)] == 18:
+                    mapa[(x_vez + 50, y_vez + 100)] = 22
+                else:
+                    mapa[(x_vez + 50, y_vez + 100)] = 15
+    if (x_vez + 100, y_vez) in mapa.keys():
+        if mapa[(x_vez + 100, y_vez)] != 13 and mapa[(x_vez + 100, y_vez)] != 14:
+            if  mapa[(x_vez + 100, y_vez)] == 15:
+                mapa[(x_vez + 100, y_vez)] = 19
+            else:
+                mapa[(x_vez + 100, y_vez)] = 16   
+    if (x_vez + 100, y_vez + 50) in mapa.keys():
+        if mapa[(x_vez + 100, y_vez + 50)] != 13 and mapa[(x_vez + 100, y_vez + 50)] != 14:
+            if mapa[(x_vez + 100, y_vez + 50)] == 17:
+                mapa[(x_vez + 100, y_vez + 50)] = 20
+            else:
+                mapa[(x_vez + 100, y_vez + 50)] = 16
+    if (x_vez, y_vez - 50) in mapa.keys():
+        if mapa[(x_vez, y_vez - 50)] != 13 and mapa[(x_vez, y_vez - 50)] != 14:
+            if mapa[(x_vez, y_vez - 50)] == 16:
+                mapa[(x_vez, y_vez - 50)] = 20
+            else:
+                mapa[(x_vez, y_vez - 50)] = 17
+    if (x_vez + 50, y_vez - 50) in mapa.keys():
+        if mapa[(x_vez + 50, y_vez - 50)] != 13 and mapa[(x_vez + 50, y_vez - 50)] != 14:
+            if mapa[(x_vez + 50, y_vez - 50)] == 18:
+                mapa[(x_vez + 50, y_vez - 50)] = 21
+            else:
+                mapa[(x_vez + 50, y_vez - 50)] = 17
+    if (x_vez - 50, y_vez) in mapa.keys():
+        if mapa[(x_vez - 50, y_vez)] != 13 and mapa[(x_vez - 50, y_vez)] != 14:
+            if mapa[(x_vez - 50, y_vez)] == 15:
+                mapa[(x_vez - 50, y_vez)] = 22
+            else:
+                mapa[(x_vez - 50, y_vez)] = 18
+    if (x_vez -50, y_vez + 50) in mapa.keys():
+        if mapa[(x_vez -50, y_vez + 50)] != 13 and mapa[(x_vez -50, y_vez + 50)] != 14:
+            if mapa[(x_vez -50, y_vez + 50)] == 17:
+                mapa[(x_vez -50, y_vez + 50)] = 21
+            else:
+                mapa[(x_vez -50, y_vez + 50)] = 18
+    
 pg.init()
 
 BRANCO = (255, 255, 255)
@@ -76,7 +126,6 @@ stamina_padrao = 1000
 
 ponto_inicial = (100, 100)
 
-retangulo = Retangulo(ponto_inicial[0], ponto_inicial[1], velocidade_padrao, stamina_padrao)
 
 setas = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0}
 ultima_seta = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0}
@@ -89,16 +138,16 @@ tilemap = []
 mapa = {}
 
 #desenho dos detalhes no mapa
-for i in range(14):
+for i in range(27):
     tilemap.append(pg.transform.scale(pg.image.load(f'assets/tile{i + 1}.png'), (50, 50)))
-    for x in range(0, LARGURA, 50):
-        for y in range(0, ALTURA, 50):
-            num1 = random.randrange(1,10)
-            if num1 == 1:
-                num = random.randrange(1, 13)
-            else:
-                num = 0
-            mapa[(x, y)] = num
+for x in range(0, LARGURA, 50):
+    for y in range(0, ALTURA, 50):
+        num1 = random.randrange(1,10)
+        if num1 == 1:
+            num = random.randrange(1, 13)
+        else:
+            num = 0
+        mapa[(x, y)] = num
 
 direcoes = ['direita', 'esquerda', 'baixo', 'cima']
 direcoes2 = direcoes.copy()
@@ -141,6 +190,7 @@ elif direcao_rio_inicial == 'cima':
     x_vez = x
     y_vez = ultimo
 Rio(x_vez, y_vez)
+contorno_rio(mapa, x_vez, y_vez)
 
 while not foz:
     if direcao_rio == direcao_rio_inicial:
@@ -151,22 +201,50 @@ while not foz:
         x_vez += 100
         if x_vez + 150 > LARGURA:
                 foz = True
-        else:
-            direcao_rio = direcao_rio_inicial
+        mapa[(x_vez, y_vez)] = mapa[(x_vez, y_vez + 50)] = mapa[(x_vez + 50, y_vez)] = mapa[(x_vez + 50, y_vez + 50)] = 13
     elif direcao_rio == 'esquerda':
         x_vez -= 100
         if x_vez <= 0:
             foz = True
+        mapa[(x_vez, y_vez)] = mapa[(x_vez, y_vez + 50)] = mapa[(x_vez + 50, y_vez)] = mapa[(x_vez + 50, y_vez + 50)] = 13
     elif direcao_rio == 'baixo':
         y_vez += 100
         if y_vez + 100 > ALTURA:
-                foz = True
+            foz = True
+        mapa[(x_vez, y_vez)] = mapa[(x_vez, y_vez + 50)] = mapa[(x_vez + 50, y_vez)] = mapa[(x_vez + 50, y_vez + 50)] = 14
     elif direcao_rio == 'cima':
         y_vez -= 100
         if y_vez <= 0:
             foz = True
-    mapa[(x_vez, y_vez)] = mapa[(x_vez, y_vez + 50)] = mapa[(x_vez + 50, y_vez)] = mapa[(x_vez + 50, y_vez + 50)] = 13
+        mapa[(x_vez, y_vez)] = mapa[(x_vez, y_vez + 50)] = mapa[(x_vez + 50, y_vez)] = mapa[(x_vez + 50, y_vez + 50)] = 14
+    contorno_rio(mapa, x_vez, y_vez)
     Rio(x_vez, y_vez)
+
+#cria as bordas abertas do rio
+for (x, y) in mapa.keys():
+    if (x + 50, y) in mapa.keys() and (x, y + 50) in mapa.keys():
+        if mapa[((x + 50, y))] == 17 and mapa[((x, y + 50))] == 18:
+            mapa[(x, y)] = 23
+    if (x - 50, y) in mapa.keys() and (x, y + 50) in mapa.keys():
+        if mapa[((x - 50, y))] == 17 and mapa[((x, y + 50))] == 16:
+            mapa[(x, y)] = 24
+    if (x + 50, y) in mapa.keys() and (x, y - 50) in mapa.keys():
+        if mapa[((x + 50, y))] == 15 and mapa[((x, y - 50))] == 18:
+            mapa[(x, y)] = 25
+    if (x - 50, y) in mapa.keys() and (x, y + 50) in mapa.keys():
+        if mapa[((x - 50, y))] == 15 and mapa[((x, y + 50))] == 16:
+            mapa[(x, y)] = 26
+    
+#cria o jogador 
+escolheu = False
+while not escolheu:
+    x = random.randrange(0, LARGURA, 50)
+    y = random.randrange(100, ALTURA, 50)
+    if mapa[(x, y)] != 13:
+        escolheu = True
+        ponto_inicial = (x, y)
+
+retangulo = Retangulo(ponto_inicial[0], ponto_inicial[1], velocidade_padrao, stamina_padrao)
 
 #cria as paredes
 num_arvores = random.randrange(4,8)
