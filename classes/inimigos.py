@@ -2,9 +2,6 @@ import pygame as pg
 import random
 from .utilidades import *
 
-stamina_padrao = 1000
-janela = pg.display.set_mode((LARGURA, ALTURA))
-
 class Inimigos(pg.sprite.Sprite):
     # Responsável por cada animal vivo
     inimigos_vivos = []
@@ -55,12 +52,9 @@ class Inimigos(pg.sprite.Sprite):
         janela.blit(self.cor, (self.x, self.y))
         
     def morte(self):
-    
         Inimigos.inimigos_vivos.remove(self)
     
-    def move(self, retangulo, variacao_tempo, paredes, rios):
-        global velocidade_devagar
-        global velocidade_rapida
+    def move(self, retangulo, variacao_tempo, paredes, rios, velocidade_devagar, velocidade_rapida):
         raio_alerta = retangulo.raio
         if retangulo.velocidade == velocidade_rapida:
             raio_alerta = raio_alerta * 1.5
