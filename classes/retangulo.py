@@ -115,10 +115,9 @@ class Retangulo:
                 ultima_seta['SPACE'] = 1
                 self.cooldown_habilidade = 0
         if ultima_seta['SPACE'] == 1:
-            self.cooldown_habilidade += 1
+            self.cooldown_habilidade += 5
             if self.cooldown_habilidade == 270:
                 ultima_seta['SPACE'] = 0
-        print(self.cooldown_habilidade)
 
     def desenhar_mago(self, janela):
         escala = 1/4

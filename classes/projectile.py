@@ -1,17 +1,16 @@
 import pygame as pg
-from .utilidades import ultima_seta
 
 class Projectile(object):
     def __init__(self,x,y,radius,facing_x, facing_y):
         self.largura = 50
-        self.altura = 30
+        self.altura = 50
         self.x = x
         self.y = y
         self.radius = radius
         self.facing_x = facing_x
         self.facing_y = facing_y
-        self.vel_x = 5 * facing_x
-        self.vel_y = 5 * facing_y
+        self.vel_x = 4 * facing_x
+        self.vel_y = 4 * facing_y
         
         if self.facing_x == 1:
             self.y -= 30

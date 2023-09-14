@@ -92,6 +92,7 @@ PRETO = (0, 0, 0)
 AMARELO = (255, 255, 0)
 VERMELHO = (255, 0, 0)
 AZUL = (95,159,159)
+AZUL_CLARO = (173,216,230)
 MARROM = (210, 180, 140)
 MARROM_ESCURO = (123, 66, 48)
 CINZA = (211,211,211)
@@ -123,6 +124,7 @@ infos = {
     }
 
 stamina_padrao = 1000
+cooldown_habilidade_padrao = 270
 
 ponto_inicial = (100, 100)
 
@@ -244,7 +246,7 @@ while not escolheu:
         escolheu = True
         ponto_inicial = (x, y)
 
-retangulo = Retangulo(ponto_inicial[0], ponto_inicial[1], velocidade_padrao, stamina_padrao)
+retangulo = Retangulo(ponto_inicial[0], ponto_inicial[1], velocidade_padrao, stamina_padrao, cooldown_habilidade_padrao)
 
 #cria as paredes
 num_arvores = random.randrange(4,8)
@@ -262,12 +264,12 @@ for i in range(3):
     locals()['inimigo' + str(i)].spawnar(retangulo, Parede.paredes, Rio.rios)
 
 
-def draw_bullets():
-    for bullet in bullets:
-        bullet.draw(janela)
+def draw_poder():
+    for poder in cargas:
+        poder.draw(janela)
 
 #loop main
-bullets = []
+cargas = []
 
 while running:
     # A movimentação é em função do tempo, se rodar muito ciclos ele para e volta dps
@@ -280,18 +282,44 @@ while running:
         if evento.type == pg.QUIT:
             running = False
 
-    for parede in Parede.paredes:
-        for bullet in bullets:
-            if bullet.x < 1280 and bullet.x > 0:
-                bullet.x += bullet.vel_x
-            else:
-                bullets.pop(bullets.index(bullet))
-            if bullet.y < 720 and bullet.y > 0:
-                bullet.y += bullet.vel_y
-            else:
-                bullets.pop(bullets.index(bullet))
-            if colisao_amigavel(bullet, parede):
-                bullets.pop(bullets.index(bullet))
+    if ultima_seta['SPACE'] == 0:
+        cooldown = False
+    
+    if not cooldown:
+        #checando colisão com animais
+        for animal in Inimigos.inimigos_vivos:
+            for poder in cargas:
+                if poder.x < 1280 and poder.x > -40:
+                    poder.x += poder.vel_x
+                else:
+                    cargas.pop(cargas.index(poder))
+                    cooldown = True
+                if poder.y < 720 and poder.y > -60:
+                    poder.y += poder.vel_y
+                else:
+                    cargas.pop(cargas.index(poder))
+                    cooldown = True
+                if colisao_amigavel(poder, animal):
+                    colisao(poder, animal)
+                    cargas.pop(cargas.index(poder))
+                    cooldown = True
+
+        #checando colisão com paredes        
+        for parede in Parede.paredes:
+            for poder in cargas:
+                if poder.x < 1280 and poder.x > -40:
+                    poder.x += poder.vel_x
+                else:
+                    cargas.pop(cargas.index(poder))
+                    cooldown = True
+                if poder.y < 720 and poder.y > -60:
+                    poder.y += poder.vel_y
+                else:
+                    cargas.pop(cargas.index(poder))
+                    cooldown = True
+                if colisao_amigavel(poder, parede):
+                    cargas.pop(cargas.index(poder))
+                    cooldown = True
 
     keys = pg.key.get_pressed()
 
@@ -306,12 +334,14 @@ while running:
         for y in range(0, height, 50):
             janela.blit(tilemap[mapa[(x, y)]], (x, y))
     
-    draw_bullets()
 
     for j in range(num_arvores):
         locals()['parede' + str(j)].desenhar_tronco()
-    # há uma pequena chance de surgir um animal cada vez que o loop roda
 
+    if not cooldown:
+        draw_poder()
+
+    # há uma pequena chance de surgir um animal cada vez que o loop roda
     chance = random.randrange(1,400)
     total_vivos = len(Inimigos.inimigos_vivos)
     nenhum = True
@@ -355,6 +385,7 @@ while running:
 
     # Barra de vida
     pg.draw.rect(janela, VERDE, (x_barras, y_barra_vida, largura_barra, altura_barra), border_radius=raio_borda)
+    pg.draw.rect(janela, BRANCO, (x_barras + 1, y_barra_vida, largura_barra - 2, altura_barra - 11), border_radius=raio_borda)
     pg.draw.rect(janela, MARROM_ESCURO, (x_barras, y_barra_vida, largura_barra, altura_barra), espessura, border_radius=raio_borda)
 
     # Barra de stamina
@@ -363,6 +394,7 @@ while running:
 
     #Barra de habilidade
     pg.draw.rect(janela, AZUL, (x_barra_habilidade, y_barra_vida, (largura_barra - 100) * ratio_habilidade, altura_barra), border_radius=raio_borda)
+    pg.draw.rect(janela, BRANCO, (x_barra_habilidade + 1, y_barra_vida, (largura_barra - 100 - 2) * ratio_habilidade, (altura_barra - 11)), border_radius=raio_borda)
     pg.draw.rect(janela, MARROM_ESCURO, (x_barra_habilidade, y_barra_vida, (largura_barra - 100), altura_barra), espessura, border_radius=raio_borda)
 
     #movimentação dos inimigos
@@ -396,24 +428,25 @@ while running:
             contador = fonte_contador.render(f'x{pontos_inimigos[animal]}', True, BRANCO) 
         janela.blit(contador, (x_inicial + 27, ALTURA - 57))
         x_inicial -= 100
+    
+    if not cooldown:
+        if keys[pg.K_SPACE]:
+            if ultima_seta['LEFT'] != 0:
+                facing_x = -1
+                facing_y = 0
+            elif ultima_seta['RIGHT'] != 0:
+                facing_x = 1
+                facing_y = 0
+            elif ultima_seta['UP'] != 0:
+                facing_y = -1
+                facing_x = 0
+            elif ultima_seta['DOWN'] != 0:
+                facing_y = 1
+                facing_x = 0
 
-    if keys[pg.K_SPACE]:
-        if ultima_seta['LEFT'] != 0:
-            facing_x = -1
-            facing_y = 0
-        elif ultima_seta['RIGHT'] != 0:
-            facing_x = 1
-            facing_y = 0
-        elif ultima_seta['UP'] != 0:
-            facing_y = -1
-            facing_x = 0
-        elif ultima_seta['DOWN'] != 0:
-            facing_y = 1
-            facing_x = 0
 
-
-        if len(bullets) < 1:
-            bullets.append(Projectile(round(retangulo.x + retangulo.largura //2), round(retangulo.y + retangulo.altura//2), 4, facing_x, facing_y))
+            if len(cargas) < 1:
+                cargas.append(Projectile(round(retangulo.x + retangulo.largura //2), round(retangulo.y + retangulo.altura//2), 4, facing_x, facing_y))
 
     janela.blit(janela, (0,0)) #atualiza o timer e as barras corretamente
 
