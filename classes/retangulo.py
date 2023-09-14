@@ -9,7 +9,7 @@ ALTURA = 720
 stamina_padrao = 1000
 
 class Retangulo:
-    def __init__(self, x, y, velocidade, stamina):
+    def __init__(self, x, y, velocidade, stamina, cooldown_habilidade):
         w = pg.display.get_surface().get_width()
         h = pg.display.get_surface().get_height()
         self.x = x
@@ -18,6 +18,7 @@ class Retangulo:
         self.altura = h / 14.4
         self.velocidade = velocidade
         self.stamina = stamina
+        self.cooldown_habilidade = cooldown_habilidade
         self.cansaco = 0
         self.img = pg.image.load('assets/mago_down.png')
         self.raio = 300
@@ -108,7 +109,17 @@ class Retangulo:
             self.stamina += 1
         if self.cansaco > 0:
             self.cansaco -= 1
-            
+        
+        if ultima_seta['SPACE'] == 0:
+            if keys[pg.K_SPACE]:
+                ultima_seta['SPACE'] = 1
+                self.cooldown_habilidade = 0
+        if ultima_seta['SPACE'] == 1:
+            self.cooldown_habilidade += 1
+            if self.cooldown_habilidade == 270:
+                ultima_seta['SPACE'] = 0
+        print(self.cooldown_habilidade)
+
     def desenhar_mago(self, janela):
         escala = 1/4
         imagem = pg.image.load('assets/mago_down.png')
