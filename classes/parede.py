@@ -8,19 +8,26 @@ class Parede:
     def __init__(self, proporcao, instancia_retangulo, rios):
         w = pg.display.get_surface().get_width()
         h = pg.display.get_surface().get_height()
+        frutifera = random.randint(0,1)
+        if frutifera == 1:
+            self.frutifera = True
+        else:
+            self.frutifera = False
         self.largura = ((w + h) / 2) * proporcao
         self.altura = self.largura / 2
         escolher = False
-        self.retangulo = instancia_retangulo
         i = 0
+        bloqueio = [instancia_retangulo]
+        for parede in Parede.paredes:
+           bloqueio.append(parede)
         while not escolher and i < 500:
             i += 1
-            self.x = random.randrange(0, int(w - self.largura))
-            self.y = random.randrange(50, int(h - 60 - self.altura))
-            if not colisao_amigavel(self, self.retangulo):
+            self.x = random.randint(0, int(w - self.largura))
+            self.y = random.randint(50, int(h - 60 - self.altura))
+            if not colisao_amigavel(self, instancia_retangulo):
                 escolher = True
-            for parede in Parede.paredes:
-                if ((parede.x + (parede.largura / 2) - self.x) ** 2 + (parede.y + (parede.altura / 2) - self.y)** 2) ** (1/2) < parede.raio:
+            for bloqueador in bloqueio:
+                if ((bloqueador.x + (bloqueador.largura / 2) - self.x) ** 2 + (bloqueador.y + (bloqueador.altura / 2) - self.y)** 2) ** (1/2) < bloqueador.raio:
                     escolher = False
             for rio in rios:
                 if colisao_amigavel(self, rio):
@@ -39,7 +46,10 @@ class Parede:
         janela.blit(redimensionar, (self.x - (self.largura / 2), self.y))
 
     def desenhar_folhas(self):
-        self.img = pg.image.load('assets/folhas.png')
+        if self.frutifera:
+            self.img = pg.image.load('assets/folhas_frutiferas.png')
+        else:
+            self.img = pg.image.load('assets/folhas.png')
         self.img.set_alpha(210)
         x = self.img.get_size()[0]
         y = self.img.get_size()[1]
