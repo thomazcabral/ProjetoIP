@@ -1,4 +1,5 @@
 import pygame as pg
+import random
 
 def colisao_amigavel(objeto1, objeto2):
     if (objeto2.x + objeto2.largura >= objeto1.x >= objeto2.x or objeto1.x + objeto1.largura >= objeto2.x >= objeto1.x) and (objeto2.y + objeto2.altura >= objeto1.y >= objeto2.y or objeto1.y + objeto1.altura >= objeto2.y >= objeto1.y):
@@ -9,13 +10,19 @@ ALTURA = 720
 stamina_padrao = 1000
 
 class Retangulo:
-    def __init__(self, x, y, velocidade, stamina, cooldown_habilidade):
+    def __init__(self, velocidade, stamina, rios, cooldown_habilidade):
         w = pg.display.get_surface().get_width()
         h = pg.display.get_surface().get_height()
-        self.x = x
-        self.y = y
         self.largura = w / 25.6
         self.altura = h / 14.4
+        escolheu = False
+        while not escolheu:
+            escolheu = True
+            self.x = random.randrange(0, LARGURA, 50)
+            self.y = random.randrange(100, ALTURA, 50)
+            for rio in rios:
+                if colisao_amigavel(self, rio):
+                    escolheu = False
         self.velocidade = velocidade
         self.stamina = stamina
         self.cooldown_habilidade = cooldown_habilidade

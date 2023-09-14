@@ -29,8 +29,8 @@ class Inimigos(pg.sprite.Sprite):
         h = pg.display.get_surface().get_height()	
         escolher = False
         while not escolher:	
-            valorx = random.randrange(0, w)	
-            valory = random.randrange(0, h - 60)
+            valorx = random.randint(0, w)	
+            valory = random.randint(0, h - 60)
             # Só irão nascer animais em um raio maior que 300 px
             if ((retangulo.x + (retangulo.largura / 2) - valorx) ** 2 + (retangulo.y + (retangulo.altura / 2) - valory)** 2) ** (1/2) >= retangulo.raio:	
                 self.x = valorx	
@@ -67,8 +67,8 @@ class Inimigos(pg.sprite.Sprite):
         direcoes = ['direita', 'esquerda', 'baixo', 'cima']
         if not self.direcao and self.repouso == 0:
             self.direcao = random.choice(direcoes)
-            self.repouso = random.randrange(160, 240)
-            self.mov_idle = random.randrange(120,150)
+            self.repouso = random.randint(160, 240)
+            self.mov_idle = random.randint(120,150)
             self.velocidade = self.velocidade_idle
         if self.mov_idle == 0:
             self.direcao = False
