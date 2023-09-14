@@ -1,18 +1,6 @@
 import pygame as pg
 import random
-import os
-
-PRETO = (0, 0, 0)
-LARGURA = 1280
-ALTURA = 720
-janela = pg.display.set_mode((LARGURA, ALTURA))
-
-
-
-def colisao_amigavel(objeto1, objeto2):
-    if (objeto2.x + objeto2.largura >= objeto1.x >= objeto2.x or objeto1.x + objeto1.largura >= objeto2.x >= objeto1.x) and (objeto2.y + objeto2.altura >= objeto1.y >= objeto2.y or objeto1.y + objeto1.altura >= objeto2.y >= objeto1.y):
-        return True
-
+from .utilidades import *
 
 class Parede:
     paredes = []
