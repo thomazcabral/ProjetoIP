@@ -1,10 +1,6 @@
 import pygame as pg
 import random
 from .utilidades import *
-from .parede import Parede
-
-stamina_padrao = 1000
-janela = pg.display.set_mode((LARGURA, ALTURA))
 
 class Inimigos(pg.sprite.Sprite):
     # Responsável por cada animal vivo
@@ -14,8 +10,8 @@ class Inimigos(pg.sprite.Sprite):
         super().__init__()
         w = pg.display.get_surface().get_width()
         h = pg.display.get_surface().get_height()
-        self.largura = w / (25.6 * 2)
-        self.altura = h / (14.4 * 2)
+        self.largura = w / (25.6)
+        self.altura = h / (14.4)
         self.nome = nome
         self.velocidade_padrao = infos[self.nome]['velocidade']
         self.velocidade = self.velocidade_padrao
@@ -28,11 +24,10 @@ class Inimigos(pg.sprite.Sprite):
         self.retangulo = instancia_retangulo
         Inimigos.inimigos_vivos.append(self)
 
-    def spawnar(self, instancia_retangulo):
+    def spawnar(self, retangulo, paredes, rios):
         w = pg.display.get_surface().get_width()	
         h = pg.display.get_surface().get_height()	
         escolher = False
-        global Parede
         while not escolher:	
             valorx = random.randrange(0, w)	
             valory = random.randrange(0, h - 60)
@@ -43,23 +38,23 @@ class Inimigos(pg.sprite.Sprite):
                 escolher = True
                 for inimigo in Inimigos.inimigos_vivos:
                     if inimigo != self and ((inimigo.x + (inimigo.largura / 2) - valorx) ** 2 + (inimigo.y + (inimigo.altura / 2) - valory)** 2) ** (1/2) < inimigo.raio:
-                        escolher = False	
-                for parede in Parede.paredes:
-                    if colisao_amigavel(self, parede):
+                        escolher = False
+                bloqueio = []
+                for k in paredes:
+                    bloqueio.append(k)
+                for k in rios:
+                    bloqueio.append(k)
+                for bloqueador in bloqueio:
+                    if colisao_amigavel(self, bloqueador):
                         escolher = False
 
     def desenhar_inimigo(self, janela):
-        pg.draw.rect(janela, self.cor, (self.x, self.y, self.largura, self.altura))
-        pg.draw.rect(janela, self.cor, (self.x, self.y, self.largura, self.altura))
+        janela.blit(self.cor, (self.x, self.y))
         
     def morte(self):
-    
         Inimigos.inimigos_vivos.remove(self)
     
-    def move(self, retangulo, variacao_tempo):
-        global velocidade_devagar
-        global velocidade_rapida
-        global Parede
+    def move(self, retangulo, variacao_tempo, paredes, rios, velocidade_devagar, velocidade_rapida):
         raio_alerta = retangulo.raio
         if retangulo.velocidade == velocidade_rapida:
             raio_alerta = raio_alerta * 1.5
@@ -109,7 +104,9 @@ class Inimigos(pg.sprite.Sprite):
         for k in Inimigos.inimigos_vivos:
             if k != self:
                 bloqueio.append(k)
-        for k in Parede.paredes:
+        for k in paredes:
+            bloqueio.append(k)
+        for k in rios:
             bloqueio.append(k)
         for inimigo in bloqueio:
             if colisao_amigavel(self, inimigo):
