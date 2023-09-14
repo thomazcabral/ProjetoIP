@@ -128,7 +128,7 @@ ponto_inicial = (100, 100)
 
 
 setas = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0}
-ultima_seta = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0}
+ultima_seta = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0, 'SPACE': 0}
 
 # Loop principal
 running = True
@@ -331,9 +331,11 @@ while running:
         locals()['parede' + str(j)].desenhar_folhas()
 
     ratio_stamina = retangulo.stamina / 1000
-    
+    ratio_habilidade = retangulo.cooldown_habilidade / 270
+
     #lugar de informacões
     janela.blit(hud, (-200, height - 60))
+
 
     #Moldura barra de vida
     largura_barra = 200
@@ -341,6 +343,7 @@ while running:
     raio_borda = 4
     espessura = 2
     x_barras = width / (LARGURA/10)
+    x_barra_habilidade = width / (LARGURA / 270)
     y_barra_stamina = height / (ALTURA/(ALTURA - 28))
     y_barra_vida = height / (ALTURA/(ALTURA - 44))
     
@@ -357,6 +360,10 @@ while running:
     # Barra de stamina
     pg.draw.rect(janela, AMARELO, (x_barras, y_barra_stamina, largura_barra * ratio_stamina, altura_barra), border_radius=raio_borda)
     pg.draw.rect(janela, MARROM_ESCURO, (x_barras, y_barra_stamina, largura_barra, altura_barra), espessura, border_radius=raio_borda)
+
+    #Barra de habilidade
+    pg.draw.rect(janela, AZUL, (x_barra_habilidade, y_barra_vida, (largura_barra - 100) * ratio_habilidade, altura_barra), border_radius=raio_borda)
+    pg.draw.rect(janela, MARROM_ESCURO, (x_barra_habilidade, y_barra_vida, (largura_barra - 100), altura_barra), espessura, border_radius=raio_borda)
 
     #movimentação dos inimigos
     for inimigo in Inimigos.inimigos_vivos:
@@ -405,7 +412,7 @@ while running:
             facing_x = 0
 
 
-        if len(bullets) < 10:
+        if len(bullets) < 1:
             bullets.append(Projectile(round(retangulo.x + retangulo.largura //2), round(retangulo.y + retangulo.altura//2), 4, facing_x, facing_y))
 
     janela.blit(janela, (0,0)) #atualiza o timer e as barras corretamente
