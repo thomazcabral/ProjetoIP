@@ -9,7 +9,7 @@ class Lobo(pg.sprite.Sprite):
     # Responsável por cada animal vivo
     lobos_vivos = []
 
-    def __init__(self, info_lobo, nome, instancia_retangulo):
+    def __init__(self, info_lobo, nome, instancia_retangulo, vida):
         super().__init__()
         w = pg.display.get_surface().get_width()
         h = pg.display.get_surface().get_height()
@@ -20,6 +20,7 @@ class Lobo(pg.sprite.Sprite):
         self.velocidade = self.velocidade_padrao
         self.cor = info_lobo[self.nome]['referencia']
         self.raio = 100
+        self.vida = vida
         self.direcao = False
         self.repouso = 0
         self.retangulo = instancia_retangulo
@@ -33,7 +34,7 @@ class Lobo(pg.sprite.Sprite):
             valorx = random.randrange(0, w)	
             valory = random.randrange(0, h - 60)
             # Só irão nascer animais em um raio maior que 300 px
-            if ((retangulo.x + (retangulo.largura / 2) - valorx) ** 2 + (retangulo.y + (retangulo.altura / 2) - valory)** 2) ** (1/2) >= retangulo.raio:	
+            if ((retangulo.x + (retangulo.largura / 2) - valorx) ** 2 + (retangulo.y + (retangulo.altura / 2) - valory)** 2) ** (1/2) >= retangulo.raio:
                 self.x = valorx	
                 self.y = valory	
                 escolher = True
@@ -55,9 +56,7 @@ class Lobo(pg.sprite.Sprite):
     def morte(self):
         Lobo.lobos_vivos.remove(self)
     
-    def move(self, retangulo, variacao_tempo, paredes, rios):
-        global velocidade_devagar
-        global velocidade_rapida
+    def move(self, retangulo, variacao_tempo, paredes, rios, velocidade_devagar, velocidade_rapida):
         raio_alerta = retangulo.raio
         if retangulo.velocidade == velocidade_rapida:
             raio_alerta = raio_alerta * 1.5
