@@ -1,7 +1,7 @@
 import pygame as pg
 import random
-from .utilidades import *
-from .parede import Parede
+from utilidades import *
+from parede import Parede
 
 stamina_padrao = 1000
 janela = pg.display.set_mode((LARGURA, ALTURA))

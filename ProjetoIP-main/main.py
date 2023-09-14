@@ -2,7 +2,9 @@ import pygame as pg
 import sys
 import time
 import random
-from classes import Inimigos, Parede, Retangulo
+from inimigos import Inimigos
+from parede import Parede
+from retangulo import Retangulo
 
 
 # Colisão com as bordas

@@ -1,7 +1,7 @@
 #certeza que isso aqui tá feio, tem como melhorar
 
 import pygame as pg
-from .retangulo import Retangulo
+from retangulo import Retangulo
 
 def colisao_amigavel(objeto1, objeto2):
     if (objeto2.x + objeto2.largura >= objeto1.x >= objeto2.x or objeto1.x + objeto1.largura >= objeto2.x >= objeto1.x) and (objeto2.y + objeto2.altura >= objeto1.y >= objeto2.y or objeto1.y + objeto1.altura >= objeto2.y >= objeto1.y):
