@@ -2,8 +2,14 @@ import pygame as pg
 import sys
 import time
 import random
-from classes import Inimigos, Parede, Retangulo
+from classes import Inimigos, Parede, Retangulo, Rio, Lobo
 
+#Imagens
+hud = pg.transform.scale(pg.image.load('assets/hud.png'), (1800, 60)) #imagem da madeira do menu inferior
+animal1 = pg.transform.smoothscale(pg.image.load('assets/animal1.png',), (50, 50))
+animal2 = pg.transform.smoothscale(pg.image.load('assets/animal2.png',), (50, 50))
+animal3 = pg.transform.smoothscale(pg.image.load('assets/animal3.png',), (50, 50))
+quadrado = pg.transform.smoothscale(pg.image.load('assets/quadradov.png',), (50, 50))
 
 # Colisão com as bordas
 def borda(variavel):
@@ -32,11 +38,10 @@ def colisao_amigavel(objeto1, objeto2):
         return True
 
 # Colisão do player com os animais
-def colisao(player, objeto):
+def morte_mago(player, objeto, vida_padrao):
     if player.x + player.largura >= objeto.x >= player.x or player.x + player.largura >= objeto.x + objeto.largura >= player.x:
         if player.y + player.altura >= objeto.y >= player.y or player.y + player.altura >= objeto.y + objeto.altura >= player.y:
-            objeto.morte()
-            pontos_inimigos[objeto.nome] += 1
+            vida_padrao -= 20
 
 pg.init()
 
@@ -75,11 +80,14 @@ infos = {
         "Animal 3": {'velocidade': velocidade_rapida, 'referencia': VERMELHO}
     }
 
+info_lobo = {"Lobo": {'velocidade': velocidade_padrao, 'referencia': quadrado}}
+
 stamina_padrao = 1000
+vida_padrao = 1000
 
 ponto_inicial = (100, 100)
 
-retangulo = Retangulo(ponto_inicial[0], ponto_inicial[1], velocidade_padrao, stamina_padrao)
+retangulo = Retangulo(ponto_inicial[0], ponto_inicial[1], velocidade_padrao, stamina_padrao, vida_padrao)
 
 #cria as paredes
 num_arvores = random.randrange(4,8)
@@ -87,8 +95,6 @@ for j in range(num_arvores):
     locals()['parede' + str(j)] = Parede(0.05, retangulo)
 
 # Spawnar os animais, foi escolhido 3 mas é arbitrário
-
-# Spawnar os animais, foi escolhido 3, mas pode ser arbitrário
 
 pontos_inimigos = {}
 for animal in infos.keys():
@@ -134,7 +140,6 @@ while running:
         locals()['parede' + str(j)].desenhar_parede()
     # há uma pequena chance de surgir um animal cada vez que o loop roda
 
-    
 
     chance = random.randrange(1,500)
     total_vivos = len(Inimigos.inimigos_vivos)
@@ -144,8 +149,22 @@ while running:
         locals()['inimigo' + str(i)].spawnar(retangulo)
     for inimigo in Inimigos.inimigos_vivos:
         inimigo.desenhar_inimigo(janela)
-        
+    
+    retangulo.desenhar_mago(janela) #desenhando o mago
+
+    chance_lobo = random.randrange(1, 200)
+    if chance_lobo == 2:
+        lobo = Lobo(info_lobo, "Lobo", retangulo)
+        lobo.spawnar(retangulo, Parede.paredes, Rio.rios)
+
+    for a in Lobo.lobos_vivos:
+        a.desenhar_lobo(janela)
+
+    for j in range(num_arvores):
+        locals()['parede' + str(j)].desenhar_folhas()
+
     ratio_stamina = retangulo.stamina / 1000
+    ratio_vida = retangulo.vida / 1000
     
     #lugar de informacões
     janela.blit(hud, (-200, height - 60))
@@ -158,7 +177,7 @@ while running:
     x_barras = width / (LARGURA/10)
     y_barra_stamina = height / (ALTURA/(ALTURA - 28))
     y_barra_vida = height / (ALTURA/(ALTURA - 44))
-    
+
     #Fundo barra de stamina
     pg.draw.rect(janela, CINZA, (x_barras, y_barra_stamina, largura_barra, altura_barra), border_radius=raio_borda)
 
@@ -166,7 +185,7 @@ while running:
     pg.draw.rect(janela, CINZA, (x_barras, y_barra_vida, largura_barra, altura_barra), border_radius=raio_borda)
 
     # Barra de vida
-    pg.draw.rect(janela, VERDE, (x_barras, y_barra_vida, largura_barra, altura_barra), border_radius=raio_borda)
+    pg.draw.rect(janela, VERDE, (x_barras, y_barra_vida, largura_barra * ratio_vida, altura_barra), border_radius=raio_borda)
     pg.draw.rect(janela, MARROM_ESCURO, (x_barras, y_barra_vida, largura_barra, altura_barra), espessura, border_radius=raio_borda)
 
     # Barra de stamina
@@ -184,6 +203,14 @@ while running:
         inimigo = colisao(retangulo, inimigo)
 
     retangulo.move(keys, variacao_tempo, setas)
+    retangulo.move(keys, variacao_tempo, setas, Parede.paredes, Rio.rios)
+    for lobo in Lobo.lobos_vivos:
+        lobo.move(retangulo, variacao_tempo, Parede.paredes, Rio.rios)
+    
+    for lobo in Lobo.lobos_vivos: 
+        lobo = morte_mago(retangulo, lobo, vida_padrao)
+
+
 
     tempo_atual = time.time()
     tempo_passado = tempo_atual - comeco_timer
