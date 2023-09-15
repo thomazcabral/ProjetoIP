@@ -2,13 +2,13 @@ import pygame as pg
 import sys
 import time
 import random
-from classes import Inimigos, Parede, Retangulo, Rio, Projectile
+from classes import Inimigos, Parede, Retangulo, Rio, Projectile, Lobo
 
 #Imagens
 hud = pg.transform.scale(pg.image.load('assets/hud.png'), (1800, 60)) #imagem da madeira do menu inferior
-animal1 = pg.transform.smoothscale(pg.image.load('assets/animal1.png',), (50, 50))
-animal2 = pg.transform.smoothscale(pg.image.load('assets/animal2.png',), (50, 50))
-animal3 = pg.transform.smoothscale(pg.image.load('assets/animal3.png',), (50, 50))
+animal1 = pg.transform.smoothscale(pg.image.load('assets/animal1.png'), (50, 50))
+animal2 = pg.transform.smoothscale(pg.image.load('assets/animal2.png'), (50, 50))
+animal3 = pg.transform.smoothscale(pg.image.load('assets/animal3.png'), (50, 50))
 
 # Colisão com as bordas
 def borda(variavel, width, height):
@@ -33,6 +33,15 @@ def colisao(player, objeto):
 def colisao_amigavel(objeto1, objeto2):
     if (objeto2.x + objeto2.largura >= objeto1.x >= objeto2.x or objeto1.x + objeto1.largura >= objeto2.x >= objeto1.x) and (objeto2.y + objeto2.altura >= objeto1.y >= objeto2.y or objeto1.y + objeto1.altura >= objeto2.y >= objeto1.y):
         return True
+
+# Verifica se o lobo entra em contato com o mago e dá dano no mago
+def dano_lobo(mago, lobo):
+    if mago.x + mago.largura >= lobo.x >= mago.x or mago.x + mago.largura >= lobo.x + lobo.largura >= mago.x:
+        if mago.y + mago.altura >= lobo.y >= mago.y or mago.y + mago.altura >= lobo.y + lobo.altura >= mago.y:
+            mago.vida -= 10
+            if mago.vida <= 0:
+                mago.vida = 0
+            lobo.velocidade = 0
 
 #cria as bordas do rio
 def contorno_rio(mapa, x_vez, y_vez):
@@ -125,6 +134,7 @@ infos = {
 
 stamina_padrao = 1000
 cooldown_habilidade_padrao = 270
+vida_padrao = 1000
 
 ponto_inicial = (100, 100)
 
@@ -132,8 +142,6 @@ ponto_inicial = (100, 100)
 setas = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0}
 ultima_seta = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0, 'SPACE': 0}
 
-# Loop principal
-running = True
 
 #gera cada pequeno pedaço de grama do mapa
 tilemap = []
@@ -255,7 +263,7 @@ for (x, y) in mapa.keys():
             mapa[(x, y)] = 27
     
 #cria o jogador 
-retangulo = Retangulo(velocidade_padrao, stamina_padrao, Rio.rios, cooldown_habilidade_padrao)
+retangulo = Retangulo(velocidade_padrao, stamina_padrao, Rio.rios, cooldown_habilidade_padrao, vida_padrao)
 
 #cria as paredes
 num_arvores = random.randint(4,8)
@@ -263,22 +271,27 @@ for j in range(num_arvores):
     locals()['parede' + str(j)] = Parede(0.05, retangulo, Rio.rios)
 
 # Spawnar os animais, foi escolhido 3, mas pode ser arbitrário
-
 pontos_inimigos = {}
 for animal in infos.keys():
     pontos_inimigos[animal] = 0
 for i in range(3):
     nome = random.choice([k for k in infos.keys()])
     locals()['inimigo' + str(i)] = Inimigos(infos, nome, retangulo)
-    locals()['inimigo' + str(i)].spawnar(retangulo, Parede.paredes, Rio.rios)
+    locals()['inimigo' + str(i)].spawnar(retangulo, Parede.paredes, Rio.rios, Lobo.lobos_vivos)
 
 
 def draw_poder():
     for poder in cargas:
         poder.draw(janela)
 
-#loop main
 cargas = []
+
+vida_lobo = 450
+lobo = Lobo(velocidade_padrao, "Lobo", retangulo, vida_lobo)
+lobo.spawnar(retangulo, Parede.paredes, Rio.rios)
+
+# Loop principal
+running = True
 
 while running:
     # A movimentação é em função do tempo, se rodar muito ciclos ele para e volta dps
@@ -365,17 +378,21 @@ while running:
     if nenhum or total_vivos == 0 or (chance == 1 and total_vivos <= 20): 
         nome = random.choice([j for j in infos.keys()])
         locals()['inimigo' + str(i)] = Inimigos(infos, nome, retangulo)
-        locals()['inimigo' + str(i)].spawnar(retangulo, Parede.paredes, Rio.rios)
+        locals()['inimigo' + str(i)].spawnar(retangulo, Parede.paredes, Rio.rios, Lobo.lobos_vivos)
     for inimigo in Inimigos.inimigos_vivos:
         inimigo.desenhar_inimigo(janela)
     
     retangulo.desenhar_mago(janela) #desenhando o mago
+
+    for lobo in Lobo.lobos_vivos: #desenhando o lobo
+        lobo.desenhar_lobo(janela)
 
     for j in range(num_arvores):
         locals()['parede' + str(j)].desenhar_folhas()
 
     ratio_stamina = retangulo.stamina / 1000
     ratio_habilidade = retangulo.cooldown_habilidade / 270
+    ratio_vida = retangulo.vida / 1000
 
     #lugar de informacões
     janela.blit(hud, (-200, height - 60))
@@ -398,8 +415,8 @@ while running:
     pg.draw.rect(janela, CINZA, (x_barras, y_barra_vida, largura_barra, altura_barra), border_radius=raio_borda)
 
     # Barra de vida
-    pg.draw.rect(janela, VERDE, (x_barras, y_barra_vida, largura_barra, altura_barra), border_radius=raio_borda)
-    pg.draw.rect(janela, BRANCO, (x_barras + 1, y_barra_vida, largura_barra - 2, altura_barra - 11), border_radius=raio_borda)
+    pg.draw.rect(janela, VERDE, (x_barras, y_barra_vida, largura_barra * ratio_vida, altura_barra), border_radius=raio_borda)
+    pg.draw.rect(janela, BRANCO, (x_barras + 1, y_barra_vida, (largura_barra - 2) * ratio_vida, altura_barra - 11), border_radius=raio_borda)
     pg.draw.rect(janela, MARROM_ESCURO, (x_barras, y_barra_vida, largura_barra, altura_barra), espessura, border_radius=raio_borda)
 
     # Barra de stamina
@@ -413,13 +430,22 @@ while running:
 
     #movimentação dos inimigos
     for inimigo in Inimigos.inimigos_vivos:
-        inimigo.move(retangulo, variacao_tempo, Parede.paredes, Rio.rios, velocidade_devagar, velocidade_rapida)
+        inimigo.move(retangulo, variacao_tempo, Parede.paredes, Rio.rios, Lobo.lobos_vivos, velocidade_devagar, velocidade_rapida)
     # Colisão com as bordas
     retangulo = borda(retangulo, width, height)
     for inimigo in Inimigos.inimigos_vivos: 
         inimigo = colisao(retangulo, inimigo)
 
+    # Movimentação do lobo
+    for lobo in Lobo.lobos_vivos:
+        lobo.move(retangulo, variacao_tempo, Parede.paredes, Rio.rios, velocidade_devagar, velocidade_rapida)
+
+    # Colisão do lobo com o mago
+    for lobo in Lobo.lobos_vivos:  
+        lobo = dano_lobo(retangulo, lobo)
+
     retangulo.move(keys, variacao_tempo, setas, ultima_seta, Parede.paredes, Rio.rios)
+
 
     #criação do timer
     tempo_atual = time.time()
