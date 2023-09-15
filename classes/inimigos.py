@@ -1,6 +1,7 @@
 import pygame as pg
 import random
 from .utilidades import *
+from .lobo import *
 
 class Inimigos(pg.sprite.Sprite):
     # Responsável por cada animal vivo
@@ -24,9 +25,9 @@ class Inimigos(pg.sprite.Sprite):
         self.retangulo = instancia_retangulo
         Inimigos.inimigos_vivos.append(self)
 
-    def spawnar(self, retangulo, paredes, rios):
-        w = pg.display.get_surface().get_width()	
-        h = pg.display.get_surface().get_height()	
+    def spawnar(self, retangulo, paredes, rios, lobo):
+        w = pg.display.get_surface().get_width()
+        h = pg.display.get_surface().get_height()
         escolher = False
         while not escolher:	
             valorx = random.randint(0, w)	
@@ -44,6 +45,8 @@ class Inimigos(pg.sprite.Sprite):
                     bloqueio.append(k)
                 for k in rios:
                     bloqueio.append(k)
+                for k in lobo:
+                    bloqueio.append(k)
                 for bloqueador in bloqueio:
                     if colisao_amigavel(self, bloqueador):
                         escolher = False
@@ -54,7 +57,7 @@ class Inimigos(pg.sprite.Sprite):
     def morte(self):
         Inimigos.inimigos_vivos.remove(self)
     
-    def move(self, retangulo, variacao_tempo, paredes, rios, velocidade_devagar, velocidade_rapida):
+    def move(self, retangulo, variacao_tempo, paredes, rios, lobo, velocidade_devagar, velocidade_rapida):
         raio_alerta = retangulo.raio
         if retangulo.velocidade == velocidade_rapida:
             raio_alerta = raio_alerta * 1.5
@@ -107,6 +110,8 @@ class Inimigos(pg.sprite.Sprite):
         for k in paredes:
             bloqueio.append(k)
         for k in rios:
+            bloqueio.append(k)
+        for k in lobo:
             bloqueio.append(k)
         for inimigo in bloqueio:
             if colisao_amigavel(self, inimigo):
