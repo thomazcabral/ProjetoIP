@@ -43,7 +43,7 @@ class Vector2d:
         return self * other
     
     def __repr__(self):
-        return f"Vector({self.x}, {self.y})"
+        return f"Vector2d({self.x}, {self.y})"
     
     def modulo(self):
         return (self.x**2 + self.y**2)**(1/2)

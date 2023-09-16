@@ -25,10 +25,7 @@ class Engine:
     def run(self):
         pg.init()
         screen = pg.display.set_mode([*self.screen_config])
-        
-
         player = Player(*self.player_config)
-
         clock = pg.time.Clock()
 
         setas = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0}

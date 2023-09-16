@@ -15,19 +15,6 @@ directions_inv = {
     Vector2d(0, 0): "DOWN"
 }
 
-colors = {
-    "WHITE": (255, 255, 255),
-    "GREEN": (0, 230, 0),
-    "BLACK": (0, 0, 0),
-    "YELLOW": (255, 255, 0),
-    "RED": (255, 0, 0),
-    "BLUE": (95,159,159),
-    "LIGHT_BLUE": (173,216,230),
-    "BROWN": (210, 180, 140),
-    "DARK_BROWN": (123, 66, 48),
-    "GRAY": (211,211,211),
-}
-
 def get_direction(keys, setas):
     if keys[pg.K_RIGHT] or keys[pg.K_d]:
         setas['RIGHT'] += 1
