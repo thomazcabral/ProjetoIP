@@ -6,9 +6,25 @@ from classes import Inimigos, Parede, Retangulo, Rio, Projectile, Lobo
 
 #Imagens
 hud = pg.transform.scale(pg.image.load('assets/hud.png'), (1800, 60)) #imagem da madeira do menu inferior
-animal1 = pg.transform.smoothscale(pg.image.load('assets/animal1.png'), (50, 50))
-animal2 = pg.transform.smoothscale(pg.image.load('assets/animal2.png'), (50, 50))
+
+#animal1
+animal1_baixo = pg.transform.smoothscale(pg.image.load('assets/animal1_frente.png'), (50, 50))
+animal1_cima = pg.transform.smoothscale(pg.image.load('assets/animal1_costas.png'), (50, 50))
+animal1_direita = pg.transform.smoothscale(pg.image.load('assets/animal1_direita.png'), (50, 50))
+animal1_esquerda = pg.transform.flip(animal1_direita, True, False)
+
+#animal2
+animal2_baixo = pg.transform.smoothscale(pg.image.load('assets/animal2_frente.png'), (50, 50))
+animal2_cima = pg.transform.smoothscale(pg.image.load('assets/animal2_costas.png'), (50, 50))
+animal2_direita = animal2_baixo
+animal2_esquerda = animal2_cima
+
+#animal3
 animal3 = pg.transform.smoothscale(pg.image.load('assets/animal3.png'), (50, 50))
+animal3_direita = animal3
+animal3_esquerda = animal3
+animal3_cima = animal3
+animal3_baixo = animal3
 
 # Colisão com as bordas
 def borda(variavel, width, height):
@@ -29,6 +45,11 @@ def colisao(player, objeto):
         if player.y + player.altura >= objeto.y >= player.y or objeto.y + objeto.altura >= player.y >= objeto.y:
             objeto.morte()
             pontos_inimigos[objeto.nome] += 1
+
+def colisao_lobo(player, objeto):
+    if player.x + player.largura >= objeto.x >= player.x or objeto.x + objeto.largura >= player.x >= objeto.x:
+        if player.y + player.altura >= objeto.y >= player.y or objeto.y + objeto.altura >= player.y >= objeto.y:
+            objeto.morte()
 
 def colisao_amigavel(objeto1, objeto2):
     if (objeto2.x + objeto2.largura >= objeto1.x >= objeto2.x or objeto1.x + objeto1.largura >= objeto2.x >= objeto1.x) and (objeto2.y + objeto2.altura >= objeto1.y >= objeto2.y or objeto1.y + objeto1.altura >= objeto2.y >= objeto1.y):
@@ -127,9 +148,9 @@ velocidade_rapida = 0.065
 
 #informações cruciais dos animais
 infos = {
-        "Animal 1": {'velocidade': velocidade_devagar, 'referencia': animal1},
-        "Animal 2": {'velocidade': velocidade_padrao, 'referencia': animal2},
-        "Animal 3": {'velocidade': velocidade_rapida, 'referencia': animal3}
+        "Animal 1": {'velocidade': velocidade_devagar, 'referencia': {'esquerda': animal1_esquerda, 'direita' : animal1_direita, 'cima' : animal1_cima, 'baixo' : animal1_baixo}},
+        "Animal 2": {'velocidade': velocidade_padrao, 'referencia': {'esquerda': animal2_esquerda, 'direita' : animal2_direita, 'cima' : animal2_cima, 'baixo' : animal2_baixo}},
+        "Animal 3": {'velocidade': velocidade_rapida, 'referencia': {'esquerda': animal3_esquerda, 'direita' : animal3_direita, 'cima' : animal3_cima, 'baixo' : animal3_baixo}}
     }
 
 stamina_padrao = 1000
@@ -326,6 +347,24 @@ while running:
                     cargas.pop(cargas.index(poder))
                     cooldown = True
 
+        #checando colisão com animais
+        for lobo in Lobo.lobos_vivos:
+            for poder in cargas:
+                if poder.x < 1280 and poder.x > -40:
+                    poder.x += poder.vel_x
+                else:
+                    cargas.pop(cargas.index(poder))
+                    cooldown = True
+                if poder.y < 720 and poder.y > -60:
+                    poder.y += poder.vel_y
+                else:
+                    cargas.pop(cargas.index(poder))
+                    cooldown = True
+                if colisao_amigavel(poder, lobo):
+                    colisao_lobo(poder, lobo)
+                    cargas.pop(cargas.index(poder))
+                    cooldown = True
+
         #checando colisão com paredes        
         for parede in Parede.paredes:
             for poder in cargas:
@@ -457,8 +496,8 @@ while running:
     x_inicial = LARGURA - texto_timer.get_width() - 150
 
     #Blitando os sprites do animais no contador
-    janela.blit(animal1, (x_inicial - 200, ALTURA - 50))
-    janela.blit(animal2, (x_inicial - 100, ALTURA - 50))
+    janela.blit(animal1_baixo, (x_inicial - 200, ALTURA - 50))
+    janela.blit(animal2_baixo, (x_inicial - 100, ALTURA - 50))
     janela.blit(animal3, (x_inicial, ALTURA - 50))
 
     for animal in reversed(pontos_inimigos.keys()): #contador dos animais
