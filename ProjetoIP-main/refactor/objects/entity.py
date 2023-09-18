@@ -1,6 +1,7 @@
+
 import pygame as pg
 
-from .helpers import directions_inv
+from .helpers import directions_inv, directions_img
 from .vector2d import Vector2d
 
 class Entity:
@@ -49,15 +50,15 @@ class Player(Entity):
         ) -> None:
         super().__init__(position, direction, dimension, speed, image)
         self.position = position
+        self.direction = direction
         self.speed = speed
         self.dimension = dimension
         self.stamina = stamina
+        self.image = image
     
-    def draw(self, screen):
-        direction = directions_inv[self.direction]
-        image = pg.image.load(f'assets/mago_{direction.lower()}.png')
-        resized_img = pg.transform.smoothscale(image, self.dimension.val)
-        screen.blit(resized_img, (self.position.val))
+    def move(self):
+        self.position = self.position + (self.direction * self.speed)
+        self.image = directions_img[self.direction]
 
 class Animal(Entity):
     def __init__(
@@ -86,16 +87,21 @@ class Animal(Entity):
         resized_img = pg.transform.smoothscale(image, self.dimension.val)
         screen.blit(resized_img, (self.position.val))
 
-class Tiles(Entity):
+class Tile(Entity):
     def __init__(
             self, 
             position: Vector2d, 
             direction: Vector2d, 
             dimension: Vector2d, 
-            speed: int,
-            image: bytearray,
-            ):
+            speed: int, 
+            image: bytearray
+        ):
         super().__init__(position, direction, dimension, speed, image)
+        self.position = position
+        self.direction = None
+        self.dimension = dimension
+        self.speed = None
+        self.image = image
 
 class Wall(Entity):
     def __init__(
@@ -114,6 +120,15 @@ class Group:
     """
     def __init__(self):
         self.items = []
+
+    def __getitem__(self, key):
+        return self.items[key]
+
+    def __setitem__(self, key, value):
+        self.items[key] = value
+
+    def __delitem__(self, key):
+        del self.items[key]
     
     def add(self, item: Entity) -> None:
         self.items.append(item)
@@ -126,6 +141,7 @@ class Group:
     
     def destroy(self):
         self.items = None
+
     
 
 

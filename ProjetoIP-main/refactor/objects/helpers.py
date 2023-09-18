@@ -15,6 +15,14 @@ directions_inv = {
     Vector2d(0, 0): "DOWN"
 }
 
+directions_img = {
+    Vector2d(1, 0): "assets/mago_right.png",
+    Vector2d(-1, 0): "assets/mago_left.png",
+    Vector2d(0, -1): "assets/mago_up.png", 
+    Vector2d(0, 1): "assets/mago_down.png",
+    Vector2d(0, 0): "assets/mago_down.png"
+}
+
 def get_direction(keys, setas):
     if keys[pg.K_RIGHT] or keys[pg.K_d]:
         setas['RIGHT'] += 1

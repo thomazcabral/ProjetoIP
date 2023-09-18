@@ -4,13 +4,13 @@ global_config = {
     "screen_config": {
         "screen_width": 1200,
         "screen_height": 650,
-        "tps": 60, # ticks por segundo
+        "tps": 60,
     },
    "player_config": {
         "position": Vector2d(200, 200),
         "initial_direction": Vector2d(0, 0),
-        "dimension": Vector2d(75, 75),
-        "speed": 2,
+        "dimension": Vector2d(60, 95),
+        "speed": 5,
         "stamina": 1000,
    },
    "animal_config": {
