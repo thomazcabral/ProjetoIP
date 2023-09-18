@@ -16,7 +16,11 @@ class Inimigos(pg.sprite.Sprite):
         self.nome = nome
         self.velocidade_padrao = infos[self.nome]['velocidade']
         self.velocidade = self.velocidade_padrao
-        self.cor = infos[self.nome]['referencia']
+        self.esquerda = infos[self.nome]['referencia']['esquerda']
+        self.direita = infos[self.nome]['referencia']['direita']
+        self.cima = infos[self.nome]['referencia']['cima']
+        self.baixo = infos[self.nome]['referencia']['baixo']
+        self.img = self.baixo
         self.raio = 100
         self.direcao = False
         self.mov_idle = 0
@@ -52,7 +56,7 @@ class Inimigos(pg.sprite.Sprite):
                         escolher = False
 
     def desenhar_inimigo(self, janela):
-        janela.blit(self.cor, (self.x, self.y))
+        janela.blit(self.img, (self.x, self.y))
         
     def morte(self):
         Inimigos.inimigos_vivos.remove(self)
@@ -97,11 +101,15 @@ class Inimigos(pg.sprite.Sprite):
 
         if self.direcao == 'direita':
             self.x += self.velocidade * variacao_tempo
+            self.img = self.direita
         elif self.direcao == 'esquerda':
+            self.img = self.esquerda
             self.x -= self.velocidade * variacao_tempo
         elif self.direcao == 'baixo':
+            self.img = self.baixo
             self.y += self.velocidade * variacao_tempo
         elif self.direcao == 'cima':
+            self.img = self.cima
             self.y -= self.velocidade * variacao_tempo
         bloqueio = []
         for k in Inimigos.inimigos_vivos:
