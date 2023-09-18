@@ -480,7 +480,7 @@ while running:
             elif ultima_seta['UP'] != 0:
                 facing_y = -1
                 facing_x = 0
-            elif ultima_seta['DOWN'] != 0:
+            else:
                 facing_y = 1
                 facing_x = 0
 
