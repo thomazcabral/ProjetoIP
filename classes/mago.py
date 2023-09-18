@@ -9,7 +9,7 @@ LARGURA = 1280
 ALTURA = 720
 stamina_padrao = 1000
 
-class Retangulo:
+class Mago:
     def __init__(self, velocidade, stamina, rios, cooldown_habilidade, vida):
         w = pg.display.get_surface().get_width()
         h = pg.display.get_surface().get_height()
