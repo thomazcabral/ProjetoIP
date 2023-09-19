@@ -171,7 +171,7 @@ desenho_enfeites = []
 enfeites = {}
 
 #desenho dos detalhes no mapa
-num_tiles = 27
+num_tiles = 31
 num_enfeites = 11
 for i in range(num_tiles):
     tilemap.append(pg.transform.scale(pg.image.load(f'assets/tile{i + 1}.png'), (50, 50)))
@@ -273,16 +273,19 @@ for (x, y) in mapa.keys():
     if (x + 50, y) in mapa.keys() and (x, y + 50) in mapa.keys():
         if mapa[((x + 50, y))] == 18 and mapa[((x, y + 50))] == 19:
             mapa[(x, y)] = 24
+            mapa[(x + 50, y + 50)] = 28
     if (x - 50, y) in mapa.keys() and (x, y + 50) in mapa.keys():
         if mapa[((x - 50, y))] == 18 and mapa[((x, y + 50))] == 17:
             mapa[(x, y)] = 25
+            mapa[(x - 50, y + 50)] = 31
     if (x + 50, y) in mapa.keys() and (x, y - 50) in mapa.keys():
         if mapa[((x + 50, y))] == 16 and mapa[((x, y - 50))] == 19:
             mapa[(x, y)] = 26
+            mapa[(x + 50, y - 50)] = 29
     if (x - 50, y) in mapa.keys() and (x, y - 50) in mapa.keys():
         if mapa[((x - 50, y))] == 16 and mapa[((x, y - 50))] == 17:
             mapa[(x, y)] = 27
-    
+            mapa[(x - 50, y - 50)] = 30
 #cria o jogador 
 retangulo = Retangulo(velocidade_padrao, stamina_padrao, Rio.rios, cooldown_habilidade_padrao, vida_padrao)
 
