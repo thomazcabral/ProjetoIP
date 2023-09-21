@@ -1,67 +1,69 @@
 import pygame as pg
 import random
 from .utilidades import *
-from .lobo import *
 
-class Inimigos(pg.sprite.Sprite):
-    # Responsável por cada animal vivo
-    inimigos_vivos = []
 
-    def __init__(self, infos, nome, instancia_retangulo):
+class Lobo(pg.sprite.Sprite):
+    # Responsável por cada lobo vivo
+    lobos_vivos = []
+
+    def __init__(self, velocidade_padrao, nome, instancia_retangulo, vida):
         super().__init__()
         w = pg.display.get_surface().get_width()
         h = pg.display.get_surface().get_height()
         self.largura = w / (25.6)
         self.altura = h / (14.4)
         self.nome = nome
-        self.velocidade_padrao = infos[self.nome]['velocidade']
+        self.velocidade_padrao = velocidade_padrao
         self.velocidade = self.velocidade_padrao
-        self.esquerda = infos[self.nome]['referencia']['esquerda']
-        self.direita = infos[self.nome]['referencia']['direita']
-        self.cima = infos[self.nome]['referencia']['cima']
-        self.baixo = infos[self.nome]['referencia']['baixo']
-        self.img = self.baixo
-        self.raio = 100
+        self.raio = 100 # caso o raio do lobo for diferente do raio dos outros animais, talvez exista um problema na colisão entre eles
+        self.vida = vida
         self.direcao = False
-        self.mov_idle = 0
-        self.velocidade_idle = 0.03
         self.repouso = 0
         self.retangulo = instancia_retangulo
-        Inimigos.inimigos_vivos.append(self)
+        Lobo.lobos_vivos.append(self)
 
-    def spawnar(self, retangulo, paredes, rios, lobo):
-        w = pg.display.get_surface().get_width()
-        h = pg.display.get_surface().get_height()
+    def spawnar(self, retangulo, paredes, rios):
+        w = pg.display.get_surface().get_width()	
+        h = pg.display.get_surface().get_height()	
         escolher = False
         while not escolher:	
             valorx = random.randint(0, w)	
             valory = random.randint(0, h - 60)
             # Só irão nascer animais em um raio maior que 300 px
-            if ((retangulo.x + (retangulo.largura / 2) - valorx) ** 2 + (retangulo.y + (retangulo.altura / 2) - valory)** 2) ** (1/2) >= retangulo.raio:	
+            if ((retangulo.x + (retangulo.largura / 2) - valorx) ** 2 + (retangulo.y + (retangulo.altura / 2) - valory)** 2) ** (1/2) >= retangulo.raio:
                 self.x = valorx	
                 self.y = valory	
                 escolher = True
-                for inimigo in Inimigos.inimigos_vivos:
-                    if inimigo != self and ((inimigo.x + (inimigo.largura / 2) - valorx) ** 2 + (inimigo.y + (inimigo.altura / 2) - valory)** 2) ** (1/2) < inimigo.raio:
+                for lobo in Lobo.lobos_vivos:
+                    if lobo != self and ((lobo.x + (lobo.largura / 2) - valorx) ** 2 + (lobo.y + (lobo.altura / 2) - valory)** 2) ** (1/2) < lobo.raio:
                         escolher = False
                 bloqueio = []
                 for k in paredes:
                     bloqueio.append(k)
                 for k in rios:
                     bloqueio.append(k)
-                for k in lobo:
-                    bloqueio.append(k)
                 for bloqueador in bloqueio:
                     if colisao_amigavel(self, bloqueador):
                         escolher = False
 
-    def desenhar_inimigo(self, janela):
-        janela.blit(self.img, (self.x, self.y))
+    def desenhar_lobo(self, janela):
+        # Falta adicionar imagens/animações do lobo
+        lobo_imagem = pg.transform.smoothscale(pg.image.load('assets/lobo.png'), (50,50))
         
+        if self.direcao == 'direita' or self.direcao == False: # O lobo sendo inicialmente desenhado para o lado direito
+            janela.blit(lobo_imagem, (self.x, self.y))
+        elif self.direcao == 'esquerda':
+            janela.blit(lobo_imagem, (self.x, self.y))
+        elif self.direcao == 'cima':
+            janela.blit(lobo_imagem, (self.x, self.y))
+        elif self.direcao == 'baixo':
+            janela.blit(lobo_imagem, (self.x, self.y))
+
     def morte(self):
-        Inimigos.inimigos_vivos.remove(self)
+        Lobo.lobos_vivos.remove(self)
     
-    def move(self, retangulo, variacao_tempo, paredes, rios, lobo, velocidade_devagar, velocidade_rapida):
+    def move(self, retangulo, variacao_tempo, paredes, rios, velocidade_devagar, velocidade_rapida):
         raio_alerta = retangulo.raio
         if retangulo.velocidade == velocidade_rapida:
             raio_alerta = raio_alerta * 1.5
@@ -71,55 +73,38 @@ class Inimigos(pg.sprite.Sprite):
         distancia_y = retangulo.y - self.y
         antigo_x = self.x
         antigo_y = self.y
-        direcoes = ['direita', 'esquerda', 'baixo', 'cima']
-        if not self.direcao and self.repouso == 0:
-            self.direcao = random.choice(direcoes)
-            self.repouso = random.randint(160, 240)
-            self.mov_idle = random.randint(120,150)
-            self.velocidade = self.velocidade_idle
-        if self.mov_idle == 0:
-            self.direcao = False
-            self.velocidade = self.velocidade_padrao
-        else: 
-            self.mov_idle -= 1
-        if self.repouso > 0:
-            self.repouso -= 1
 
         if ((distancia_x)**2 + (distancia_y)**2)**(1/2) <= raio_alerta:
-            self.mov_idle = 0
             if abs(distancia_x) > abs(distancia_y):
                 self.velocidade = self.velocidade_padrao
                 if distancia_x < 0:
-                    self.direcao = 'direita'
-                else:
                     self.direcao = 'esquerda'
+                else:
+                    self.direcao = 'direita'
             else:
                 if distancia_y < 0:
-                    self.direcao = 'baixo'
-                else:
                     self.direcao = 'cima'
+                else:
+                    self.direcao = 'baixo'
+        else:
+            self.velocidade = 0
 
         if self.direcao == 'direita':
             self.x += self.velocidade * variacao_tempo
-            self.img = self.direita
         elif self.direcao == 'esquerda':
-            self.img = self.esquerda
             self.x -= self.velocidade * variacao_tempo
         elif self.direcao == 'baixo':
-            self.img = self.baixo
             self.y += self.velocidade * variacao_tempo
         elif self.direcao == 'cima':
-            self.img = self.cima
             self.y -= self.velocidade * variacao_tempo
+        self.velocidade = self.velocidade_padrao
         bloqueio = []
-        for k in Inimigos.inimigos_vivos:
+        for k in Lobo.lobos_vivos:
             if k != self:
                 bloqueio.append(k)
         for k in paredes:
             bloqueio.append(k)
         for k in rios:
-            bloqueio.append(k)
-        for k in lobo:
             bloqueio.append(k)
         for inimigo in bloqueio:
             if colisao_amigavel(self, inimigo):
