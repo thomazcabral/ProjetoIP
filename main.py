@@ -6,21 +6,26 @@ from classes import Inimigos, Parede, Retangulo, Rio, Projectile, Lobo
 
 #Imagens
 hud = pg.transform.scale(pg.image.load('assets/hud.png'), (1800, 60)) #imagem da madeira do menu inferior
+hud_skill = pg.transform.smoothscale(pg.image.load('assets/projetil_skill_hud.png'), (64, 48))
+hud_skill_cooldown = pg.transform.scale(pg.image.load('assets/projetil_cooldown.png'), (64, 48))
 
 #animal1
-animal1_baixo = pg.transform.smoothscale(pg.image.load('assets/animal1_frente.png'), (50, 50))
-animal1_cima = pg.transform.smoothscale(pg.image.load('assets/animal1_costas.png'), (50, 50))
-animal1_direita = pg.transform.smoothscale(pg.image.load('assets/animal1_direita.png'), (50, 50))
-animal1_esquerda = pg.transform.flip(animal1_direita, True, False)
+animal1_baixo = [pg.transform.smoothscale(pg.image.load('assets/animal1_frente.png'), (50, 50))]
+animal1_cima = [pg.transform.smoothscale(pg.image.load('assets/animal1_costas.png'), (50, 50))]
+animal1_direita = [pg.transform.smoothscale(pg.image.load('assets/sapo_direita_sprite1.png'), (50, 50)), 
+                   pg.transform.smoothscale(pg.image.load('assets/sapo_direita_sprite2.png'), (50, 50)),
+                   pg.transform.smoothscale(pg.image.load('assets/sapo_direita_sprite3.png'), (50, 50)),
+                   pg.transform.smoothscale(pg.image.load('assets/sapo_direita_sprite4.png'), (50, 50))]
+animal1_esquerda = [pg.transform.flip(animal1_direita[0], True, False)]
 
 #animal2
-animal2_baixo = pg.transform.smoothscale(pg.image.load('assets/animal2_frente.png'), (50, 50))
-animal2_cima = pg.transform.smoothscale(pg.image.load('assets/animal2_costas.png'), (50, 50))
+animal2_baixo = [pg.transform.smoothscale(pg.image.load('assets/animal2_frente.png'), (50, 50))]
+animal2_cima = [pg.transform.smoothscale(pg.image.load('assets/animal2_costas.png'), (50, 50))]
 animal2_direita = animal2_baixo
 animal2_esquerda = animal2_cima
 
 #animal3
-animal3 = pg.transform.smoothscale(pg.image.load('assets/animal3.png'), (50, 50))
+animal3 = [pg.transform.smoothscale(pg.image.load('assets/animal3.png'), (50, 50))]
 animal3_direita = animal3
 animal3_esquerda = animal3
 animal3_cima = animal3
@@ -328,9 +333,13 @@ while running:
         if evento.type == pg.QUIT:
             running = False
 
+
     if ultima_seta['SPACE'] == 0:
         cooldown = False
-    
+        cooldown_sprite = False
+    else:
+        cooldown_sprite = True
+
     if not cooldown:
         #checando colisão com animais
         for animal in Inimigos.inimigos_vivos:
@@ -442,14 +451,16 @@ while running:
 
     #Moldura barra de vida
     largura_barra = 200
+    largura_barra_skill = 64
     altura_barra = 15
-    altura_barra_habilidade = 30
+    altura_barra_habilidade = 48
     raio_borda = 4
     espessura = 2
     x_barras = width / (LARGURA/10)
-    x_barra_habilidade = width / (LARGURA / 270)
     y_barra_stamina = height / (ALTURA/(ALTURA - 28))
     y_barra_vida = height / (ALTURA/(ALTURA - 44))
+    x_barra_habilidade = width / (LARGURA / 270)
+    y_barra_habilidade = y_barra_vida - 9
     
     #Fundo barra de stamina
     pg.draw.rect(janela, CINZA, (x_barras, y_barra_stamina, largura_barra, altura_barra), border_radius=raio_borda)
@@ -467,8 +478,15 @@ while running:
     pg.draw.rect(janela, MARROM_ESCURO, (x_barras, y_barra_stamina, largura_barra, altura_barra), espessura, border_radius=raio_borda)
 
     #Barra de habilidade
-    pg.draw.rect(janela, AZUL, (x_barra_habilidade, y_barra_vida, (largura_barra - 100), altura_barra_habilidade * ratio_habilidade), border_radius=raio_borda)
-    pg.draw.rect(janela, MARROM_ESCURO, (x_barra_habilidade, y_barra_vida, (largura_barra - 100), altura_barra_habilidade), espessura, border_radius=raio_borda)
+    if not cooldown_sprite:
+        janela.blit(hud_skill, (x_barra_habilidade, y_barra_habilidade))
+    else:
+        barra_branca = pg.transform.smoothscale(pg.image.load('assets/barra_branca.png'), (64 * ratio_habilidade, 48))
+        barra_branca.set_alpha(100)
+        janela.blit(hud_skill_cooldown, (x_barra_habilidade, y_barra_habilidade))
+        janela.blit(barra_branca, (x_barra_habilidade, y_barra_habilidade))
+    pg.draw.rect(janela, MARROM_ESCURO, (x_barra_habilidade, y_barra_habilidade, largura_barra_skill, altura_barra_habilidade), espessura, border_radius=raio_borda)
+    
 
     #movimentação dos inimigos
     for inimigo in Inimigos.inimigos_vivos:
@@ -499,9 +517,9 @@ while running:
     x_inicial = LARGURA - texto_timer.get_width() - 150
 
     #Blitando os sprites do animais no contador
-    janela.blit(animal1_baixo, (x_inicial - 200, ALTURA - 50))
-    janela.blit(animal2_baixo, (x_inicial - 100, ALTURA - 50))
-    janela.blit(animal3, (x_inicial, ALTURA - 50))
+    janela.blit(animal1_baixo[0], (x_inicial - 200, ALTURA - 50))
+    janela.blit(animal2_baixo[0], (x_inicial - 100, ALTURA - 50))
+    janela.blit(animal3[0], (x_inicial, ALTURA - 50))
 
     for animal in reversed(pontos_inimigos.keys()): #contador dos animais
         if pontos_inimigos[animal] < 10:

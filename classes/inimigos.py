@@ -56,7 +56,8 @@ class Inimigos(pg.sprite.Sprite):
                         escolher = False
 
     def desenhar_inimigo(self, janela):
-        janela.blit(self.img, (self.x, self.y))
+        for sprite in self.img:
+            janela.blit(sprite, (self.x, self.y))
         
     def morte(self):
         Inimigos.inimigos_vivos.remove(self)
