@@ -1,13 +1,13 @@
 import pygame as pg
 import random
 from .utilidades import *
-from .lobo import *
+from .dragao import *
 
-class Inimigos(pg.sprite.Sprite):
+class Animais(pg.sprite.Sprite):
     # Responsável por cada animal vivo
-    inimigos_vivos = []
+    animais_vivos = []
 
-    def __init__(self, infos, nome, instancia_retangulo):
+    def __init__(self, infos, nome, instancia_mago):
         super().__init__()
         w = pg.display.get_surface().get_width()
         h = pg.display.get_surface().get_height()
@@ -26,10 +26,10 @@ class Inimigos(pg.sprite.Sprite):
         self.mov_idle = 0
         self.velocidade_idle = 0.03
         self.repouso = 0
-        self.retangulo = instancia_retangulo
-        Inimigos.inimigos_vivos.append(self)
+        self.mago = instancia_mago
+        Animais.animais_vivos.append(self)
 
-    def spawnar(self, retangulo, paredes, rios, lobo):
+    def spawnar(self, mago, paredes, rios, dragao):
         w = pg.display.get_surface().get_width()
         h = pg.display.get_surface().get_height()
         escolher = False
@@ -37,38 +37,38 @@ class Inimigos(pg.sprite.Sprite):
             valorx = random.randint(0, w)	
             valory = random.randint(0, h - 60)
             # Só irão nascer animais em um raio maior que 300 px
-            if ((retangulo.x + (retangulo.largura / 2) - valorx) ** 2 + (retangulo.y + (retangulo.altura / 2) - valory)** 2) ** (1/2) >= retangulo.raio:	
+            if ((mago.x + (mago.largura / 2) - valorx) ** 2 + (mago.y + (mago.altura / 2) - valory)** 2) ** (1/2) >= mago.raio:	
                 self.x = valorx	
                 self.y = valory	
                 escolher = True
-                for inimigo in Inimigos.inimigos_vivos:
-                    if inimigo != self and ((inimigo.x + (inimigo.largura / 2) - valorx) ** 2 + (inimigo.y + (inimigo.altura / 2) - valory)** 2) ** (1/2) < inimigo.raio:
+                for animal in Animais.animais_vivos:
+                    if animal != self and ((animal.x + (animal.largura / 2) - valorx) ** 2 + (animal.y + (animal.altura / 2) - valory)** 2) ** (1/2) < animal.raio:
                         escolher = False
                 bloqueio = []
                 for k in paredes:
                     bloqueio.append(k)
                 for k in rios:
                     bloqueio.append(k)
-                for k in lobo:
+                for k in dragao:
                     bloqueio.append(k)
                 for bloqueador in bloqueio:
                     if colisao_amigavel(self, bloqueador):
                         escolher = False
 
-    def desenhar_inimigo(self, janela):
+    def desenhar_animal(self, janela):
         janela.blit(self.img, (self.x, self.y))
         
     def morte(self):
-        Inimigos.inimigos_vivos.remove(self)
+        Animais.animais_vivos.remove(self)
     
-    def move(self, retangulo, variacao_tempo, paredes, rios, lobo, velocidade_devagar, velocidade_rapida):
-        raio_alerta = retangulo.raio
-        if retangulo.velocidade == velocidade_rapida:
+    def move(self, mago, variacao_tempo, paredes, rios, dragao, velocidade_devagar, velocidade_rapida):
+        raio_alerta = mago.raio
+        if mago.velocidade == velocidade_rapida:
             raio_alerta = raio_alerta * 1.5
-        elif retangulo.velocidade == velocidade_devagar:
+        elif mago.velocidade == velocidade_devagar:
             raio_alerta = raio_alerta / 1.5
-        distancia_x = retangulo.x - self.x
-        distancia_y = retangulo.y - self.y
+        distancia_x = mago.x - self.x
+        distancia_y = mago.y - self.y
         antigo_x = self.x
         antigo_y = self.y
         direcoes = ['direita', 'esquerda', 'baixo', 'cima']
@@ -112,16 +112,16 @@ class Inimigos(pg.sprite.Sprite):
             self.img = self.cima
             self.y -= self.velocidade * variacao_tempo
         bloqueio = []
-        for k in Inimigos.inimigos_vivos:
+        for k in Animais.animais_vivos:
             if k != self:
                 bloqueio.append(k)
         for k in paredes:
             bloqueio.append(k)
         for k in rios:
             bloqueio.append(k)
-        for k in lobo:
+        for k in dragao:
             bloqueio.append(k)
-        for inimigo in bloqueio:
-            if colisao_amigavel(self, inimigo):
+        for animal in bloqueio:
+            if colisao_amigavel(self, animal):
                 self.x = antigo_x
                 self.y = antigo_y
