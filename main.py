@@ -2,7 +2,7 @@ import pygame as pg
 import sys
 import time
 import random
-from classes import Inimigos, Parede, Retangulo, Rio, Projectile, Lobo
+from classes import Animais, Parede, Mago, Rio, Projectile, Dragao, functions
 
 #Imagens
 hud = pg.transform.scale(pg.image.load('assets/hud.png'), (1800, 60)) #imagem da madeira do menu inferior
@@ -25,94 +25,6 @@ animal3_direita = animal3
 animal3_esquerda = animal3
 animal3_cima = animal3
 animal3_baixo = animal3
-
-# Colisão com as bordas
-def borda(variavel, width, height):
-    if variavel.x < 0:
-        variavel.x = 0
-    if variavel.x > width - variavel.largura:
-        variavel.x = width - variavel.largura
-    if variavel.y < 0:
-        variavel.y = 0
-    if variavel.y > height - variavel.altura - 60:
-        variavel.y = height - variavel.altura - 60
-    return variavel
-
-
-# Colisão do player com os animais
-def colisao(player, objeto):
-    if player.x + player.largura >= objeto.x >= player.x or objeto.x + objeto.largura >= player.x >= objeto.x:
-        if player.y + player.altura >= objeto.y >= player.y or objeto.y + objeto.altura >= player.y >= objeto.y:
-            objeto.morte()
-            pontos_inimigos[objeto.nome] += 1
-
-def colisao_lobo(player, objeto):
-    if player.x + player.largura >= objeto.x >= player.x or objeto.x + objeto.largura >= player.x >= objeto.x:
-        if player.y + player.altura >= objeto.y >= player.y or objeto.y + objeto.altura >= player.y >= objeto.y:
-            objeto.morte()
-
-def colisao_amigavel(objeto1, objeto2):
-    if (objeto2.x + objeto2.largura >= objeto1.x >= objeto2.x or objeto1.x + objeto1.largura >= objeto2.x >= objeto1.x) and (objeto2.y + objeto2.altura >= objeto1.y >= objeto2.y or objeto1.y + objeto1.altura >= objeto2.y >= objeto1.y):
-        return True
-
-# Verifica se o lobo entra em contato com o mago e dá dano no mago
-def dano_lobo(mago, lobo):
-    if mago.x + mago.largura >= lobo.x >= mago.x or mago.x + mago.largura >= lobo.x + lobo.largura >= mago.x:
-        if mago.y + mago.altura >= lobo.y >= mago.y or mago.y + mago.altura >= lobo.y + lobo.altura >= mago.y:
-            mago.vida -= 10
-            if mago.vida <= 0:
-                mago.vida = 0
-            lobo.velocidade = 0
-
-#cria as bordas do rio
-def contorno_rio(mapa, x_vez, y_vez):
-    if (x_vez, y_vez + 100) in mapa.keys():
-        if mapa[(x_vez, y_vez + 100)] != 14 and mapa[(x_vez, y_vez + 100)] != 15:
-            if mapa[(x_vez, y_vez + 100)] == 17:
-                mapa[(x_vez, y_vez + 100)] = 20
-            else:
-                mapa[(x_vez, y_vez + 100)] = 16
-            if (x_vez + 50, y_vez + 100) in mapa.keys():
-                if mapa[(x_vez + 50, y_vez + 100)] == 19:
-                    mapa[(x_vez + 50, y_vez + 100)] = 23
-                else:
-                    mapa[(x_vez + 50, y_vez + 100)] = 16
-    if (x_vez + 100, y_vez) in mapa.keys():
-        if mapa[(x_vez + 100, y_vez)] != 14 and mapa[(x_vez + 100, y_vez)] != 15:
-            if  mapa[(x_vez + 100, y_vez)] == 16:
-                mapa[(x_vez + 100, y_vez)] = 20
-            else:
-                mapa[(x_vez + 100, y_vez)] = 17   
-    if (x_vez + 100, y_vez + 50) in mapa.keys():
-        if mapa[(x_vez + 100, y_vez + 50)] != 14 and mapa[(x_vez + 100, y_vez + 50)] != 15:
-            if mapa[(x_vez + 100, y_vez + 50)] == 18:
-                mapa[(x_vez + 100, y_vez + 50)] = 21
-            else:
-                mapa[(x_vez + 100, y_vez + 50)] = 17
-    if (x_vez, y_vez - 50) in mapa.keys():
-        if mapa[(x_vez, y_vez - 50)] != 14 and mapa[(x_vez, y_vez - 50)] != 15:
-            if mapa[(x_vez, y_vez - 50)] == 17:
-                mapa[(x_vez, y_vez - 50)] = 21
-            else:
-                mapa[(x_vez, y_vez - 50)] = 18
-    if (x_vez + 50, y_vez - 50) in mapa.keys():
-        if mapa[(x_vez + 50, y_vez - 50)] != 14 and mapa[(x_vez + 50, y_vez - 50)] != 15:
-            if mapa[(x_vez + 50, y_vez - 50)] == 19:
-                mapa[(x_vez + 50, y_vez - 50)] = 22
-            else:
-                mapa[(x_vez + 50, y_vez - 50)] = 18
-    if (x_vez - 50, y_vez) in mapa.keys():
-        if mapa[(x_vez - 50, y_vez)] != 14 and mapa[(x_vez - 50, y_vez)] != 15:
-            if mapa[(x_vez - 50, y_vez)] == 16:
-                mapa[(x_vez - 50, y_vez)] = 23
-            else:
-                mapa[(x_vez - 50, y_vez)] = 19
-    if (x_vez -50, y_vez + 50) in mapa.keys():
-        if mapa[(x_vez -50, y_vez + 50)] != 14 and mapa[(x_vez -50, y_vez + 50)] != 15:
-            if mapa[(x_vez -50, y_vez + 50)] == 18:
-                mapa[(x_vez -50, y_vez + 50)] = 22
-            else:
-                mapa[(x_vez -50, y_vez + 50)] = 19
     
 pg.init()
 
@@ -228,7 +140,7 @@ elif direcao_rio_inicial == 'cima':
     x_vez = x
     y_vez = ultimo
 Rio(x_vez, y_vez)
-contorno_rio(mapa, x_vez, y_vez)
+functions.contorno_rio(mapa, x_vez, y_vez)
 
 while not foz:
     if direcao_rio == direcao_rio_inicial:
@@ -255,7 +167,7 @@ while not foz:
         if y_vez <= 0:
             foz = True
         mapa[(x_vez, y_vez)] = mapa[(x_vez, y_vez + 50)] = mapa[(x_vez + 50, y_vez)] = mapa[(x_vez + 50, y_vez + 50)] = 14
-    contorno_rio(mapa, x_vez, y_vez)
+    functions.contorno_rio(mapa, x_vez, y_vez)
     Rio(x_vez, y_vez)
 
 for x in range(0, LARGURA, 50):
@@ -287,32 +199,27 @@ for (x, y) in mapa.keys():
             mapa[(x, y)] = 27
             mapa[(x - 50, y - 50)] = 30
 #cria o jogador 
-retangulo = Retangulo(velocidade_padrao, stamina_padrao, Rio.rios, cooldown_habilidade_padrao, vida_padrao)
+mago = Mago(velocidade_padrao, stamina_padrao, Rio.rios, cooldown_habilidade_padrao, vida_padrao)
 
 #cria as paredes
 num_arvores = random.randint(4,8)
 for j in range(num_arvores):
-    locals()['parede' + str(j)] = Parede(0.05, retangulo, Rio.rios)
+    locals()['parede' + str(j)] = Parede(0.05, mago, Rio.rios)
 
 # Spawnar os animais, foi escolhido 3, mas pode ser arbitrário
-pontos_inimigos = {}
+pontos_animais = {}
 for animal in infos.keys():
-    pontos_inimigos[animal] = 0
+    pontos_animais[animal] = 0
 for i in range(3):
     nome = random.choice([k for k in infos.keys()])
-    locals()['inimigo' + str(i)] = Inimigos(infos, nome, retangulo)
-    locals()['inimigo' + str(i)].spawnar(retangulo, Parede.paredes, Rio.rios, Lobo.lobos_vivos)
-
-
-def draw_poder():
-    for poder in cargas:
-        poder.draw(janela)
+    locals()['animal' + str(i)] = Animais(infos, nome, mago)
+    locals()['animal' + str(i)].spawnar(mago, Parede.paredes, Rio.rios, Dragao.dragoes_vivos)
 
 cargas = []
 
-vida_lobo = 450
-lobo = Lobo(velocidade_padrao, "Lobo", retangulo, vida_lobo)
-lobo.spawnar(retangulo, Parede.paredes, Rio.rios)
+vida_dragao = 450
+dragao = Dragao(velocidade_padrao, "Dragao", mago, vida_dragao)
+dragao.spawnar(mago, Parede.paredes, Rio.rios)
 
 # Loop principal
 running = True
@@ -333,7 +240,7 @@ while running:
     
     if not cooldown:
         #checando colisão com animais
-        for animal in Inimigos.inimigos_vivos:
+        for animal in Animais.animais_vivos:
             for poder in cargas:
                 if poder.x < 1280 and poder.x > -40:
                     poder.x += poder.vel_x
@@ -345,13 +252,13 @@ while running:
                 else:
                     cargas.pop(cargas.index(poder))
                     cooldown = True
-                if colisao_amigavel(poder, animal):
-                    colisao(poder, animal)
+                if functions.colisao_amigavel(poder, animal):
+                    functions.colisao(poder, animal, pontos_animais)
                     cargas.pop(cargas.index(poder))
                     cooldown = True
 
         #checando colisão com animais
-        for lobo in Lobo.lobos_vivos:
+        for dragao in Dragao.dragoes_vivos:
             for poder in cargas:
                 if poder.x < 1280 and poder.x > -40:
                     poder.x += poder.vel_x
@@ -363,8 +270,8 @@ while running:
                 else:
                     cargas.pop(cargas.index(poder))
                     cooldown = True
-                if colisao_amigavel(poder, lobo):
-                    colisao_lobo(poder, lobo)
+                if functions.colisao_amigavel(poder, dragao):
+                    functions.colisao_dragao(poder, dragao)
                     cargas.pop(cargas.index(poder))
                     cooldown = True
 
@@ -381,7 +288,7 @@ while running:
                 else:
                     cargas.pop(cargas.index(poder))
                     cooldown = True
-                if colisao_amigavel(poder, parede):
+                if functions.colisao_amigavel(poder, parede):
                     cargas.pop(cargas.index(poder))
                     cooldown = True
 
@@ -408,33 +315,33 @@ while running:
         locals()['parede' + str(j)].desenhar_tronco()
 
     if not cooldown:
-        draw_poder()
+        functions.draw_poder(cargas, janela)
 
     # há uma pequena chance de surgir um animal cada vez que o loop roda
     chance = random.randint(1,400)
-    total_vivos = len(Inimigos.inimigos_vivos)
+    total_vivos = len(Animais.animais_vivos)
     nenhum = True
-    for inimigo in Inimigos.inimigos_vivos:
-        if not (inimigo.x < -1 * inimigo.largura or inimigo.x >= width or inimigo.y < -1 * inimigo.altura or inimigo.y > height):
+    for animal in Animais.animais_vivos:
+        if not (animal.x < -1 * animal.largura or animal.x >= width or animal.y < -1 * animal.altura or animal.y > height):
             nenhum = False
     if nenhum or total_vivos == 0 or (chance == 1 and total_vivos <= 20): 
         nome = random.choice([j for j in infos.keys()])
-        locals()['inimigo' + str(i)] = Inimigos(infos, nome, retangulo)
-        locals()['inimigo' + str(i)].spawnar(retangulo, Parede.paredes, Rio.rios, Lobo.lobos_vivos)
-    for inimigo in Inimigos.inimigos_vivos:
-        inimigo.desenhar_inimigo(janela)
+        locals()['animal' + str(i)] = Animais(infos, nome, mago)
+        locals()['animal' + str(i)].spawnar(mago, Parede.paredes, Rio.rios, Dragao.dragoes_vivos)
+    for animal in Animais.animais_vivos:
+        animal.desenhar_animal(janela)
     
-    retangulo.desenhar_mago(janela) #desenhando o mago
+    mago.desenhar_mago(janela) #desenhando o mago
 
-    for lobo in Lobo.lobos_vivos: #desenhando o lobo
-        lobo.desenhar_lobo(janela)
+    for dragao in Dragao.dragoes_vivos: #desenhando o dragao
+        dragao.desenhar_dragao(janela)
 
     for j in range(num_arvores):
         locals()['parede' + str(j)].desenhar_folhas()
 
-    ratio_stamina = retangulo.stamina / 1000
-    ratio_habilidade = retangulo.cooldown_habilidade / 270
-    ratio_vida = retangulo.vida / 1000
+    ratio_stamina = mago.stamina / 1000
+    ratio_habilidade = mago.cooldown_habilidade / 270
+    ratio_vida = mago.vida / 1000
 
     #lugar de informacões
     janela.blit(hud, (-200, height - 60))
@@ -470,23 +377,23 @@ while running:
     pg.draw.rect(janela, BRANCO, (x_barra_habilidade + 1, y_barra_vida, (largura_barra - 100 - 2) * ratio_habilidade, (altura_barra - 11)), border_radius=raio_borda)
     pg.draw.rect(janela, MARROM_ESCURO, (x_barra_habilidade, y_barra_vida, (largura_barra - 100), altura_barra), espessura, border_radius=raio_borda)
 
-    #movimentação dos inimigos
-    for inimigo in Inimigos.inimigos_vivos:
-        inimigo.move(retangulo, variacao_tempo, Parede.paredes, Rio.rios, Lobo.lobos_vivos, velocidade_devagar, velocidade_rapida)
+    #movimentação dos animais
+    for animal in Animais.animais_vivos:
+        animal.move(mago, variacao_tempo, Parede.paredes, Rio.rios, Dragao.dragoes_vivos, velocidade_devagar, velocidade_rapida)
     # Colisão com as bordas
-    retangulo = borda(retangulo, width, height)
-    for inimigo in Inimigos.inimigos_vivos: 
-        inimigo = colisao(retangulo, inimigo)
+    mago = functions.borda(mago, width, height)
+    for animal in Animais.animais_vivos: 
+        animal = functions.colisao(mago, animal, pontos_animais)
 
-    # Movimentação do lobo
-    for lobo in Lobo.lobos_vivos:
-        lobo.move(retangulo, variacao_tempo, Parede.paredes, Rio.rios, velocidade_devagar, velocidade_rapida)
+    # Movimentação do dragao
+    for dragao in Dragao.dragoes_vivos:
+        dragao.move(mago, variacao_tempo, Parede.paredes, Rio.rios, velocidade_devagar, velocidade_rapida)
 
-    # Colisão do lobo com o mago
-    for lobo in Lobo.lobos_vivos:  
-        lobo = dano_lobo(retangulo, lobo)
+    # Colisão do dragao com o mago
+    for dragao in Dragao.dragoes_vivos:  
+        dragao = functions.dano_dragao(mago, dragao)
 
-    retangulo.move(keys, variacao_tempo, setas, ultima_seta, Parede.paredes, Rio.rios)
+    mago.move(keys, variacao_tempo, setas, ultima_seta, Parede.paredes, Rio.rios)
 
 
     #criação do timer
@@ -503,11 +410,11 @@ while running:
     janela.blit(animal2_baixo, (x_inicial - 100, ALTURA - 50))
     janela.blit(animal3, (x_inicial, ALTURA - 50))
 
-    for animal in reversed(pontos_inimigos.keys()): #contador dos animais
-        if pontos_inimigos[animal] < 10:
-            contador = fonte_contador.render(f'x0{pontos_inimigos[animal]}', True, BRANCO)
+    for animal in reversed(pontos_animais.keys()): #contador dos animais
+        if pontos_animais[animal] < 10:
+            contador = fonte_contador.render(f'x0{pontos_animais[animal]}', True, BRANCO)
         else:
-            contador = fonte_contador.render(f'x{pontos_inimigos[animal]}', True, BRANCO) 
+            contador = fonte_contador.render(f'x{pontos_animais[animal]}', True, BRANCO) 
         janela.blit(contador, (x_inicial + 27, ALTURA - 57))
         x_inicial -= 100
     
@@ -528,7 +435,7 @@ while running:
 
 
             if len(cargas) < 1:
-                cargas.append(Projectile(round(retangulo.x + retangulo.largura //2), round(retangulo.y + retangulo.altura//2), 4, facing_x, facing_y))
+                cargas.append(Projectile(round(mago.x + mago.largura //2), round(mago.y + mago.altura//2), 4, facing_x, facing_y))
 
     janela.blit(janela, (0,0)) #atualiza o timer e as barras corretamente
 
