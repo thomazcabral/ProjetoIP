@@ -5,7 +5,7 @@ from .utilidades import *
 class Parede:
     paredes = []
     raio = 200
-    def __init__(self, proporcao, instancia_retangulo, rios):
+    def __init__(self, proporcao, instancia_mago, rios):
         w = pg.display.get_surface().get_width()
         h = pg.display.get_surface().get_height()
         frutifera = random.randint(0,1)
@@ -17,14 +17,14 @@ class Parede:
         self.altura = self.largura / 2
         escolher = False
         i = 0
-        bloqueio = [instancia_retangulo]
+        bloqueio = [instancia_mago]
         for parede in Parede.paredes:
            bloqueio.append(parede)
         while not escolher and i < 500:
             i += 1
             self.x = random.randint(0, int(w - self.largura))
             self.y = random.randint(50, int(h - 60 - self.altura))
-            if not colisao_amigavel(self, instancia_retangulo):
+            if not colisao_amigavel(self, instancia_mago):
                 escolher = True
             for bloqueador in bloqueio:
                 if ((bloqueador.x + (bloqueador.largura / 2) - self.x) ** 2 + (bloqueador.y + (bloqueador.altura / 2) - self.y)** 2) ** (1/2) < bloqueador.raio:
