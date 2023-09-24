@@ -2,10 +2,13 @@ import pygame as pg
 import sys
 import time
 import random
+from classes.utilidades import *
 from classes import Animais, Parede, Mago, Rio, Projectile, Dragao, functions
 
 #Imagens
 hud = pg.transform.scale(pg.image.load('assets/hud.png'), (1800, 60)) #imagem da madeira do menu inferior
+hud_skill = pg.transform.smoothscale(pg.image.load('assets/projetil_skill_hud.png'), (64, 48))
+hud_skill_cooldown = pg.transform.scale(pg.image.load('assets/projetil_cooldown.png'), (64, 48))
 
 #animal1
 animal1_baixo = pg.transform.smoothscale(pg.image.load('assets/animal1_frente.png'), (50, 50))
@@ -237,6 +240,9 @@ while running:
 
     if ultima_seta['SPACE'] == 0:
         cooldown = False
+        cooldown_sprite = False
+    else:
+        cooldown_sprite = True
     
     if not cooldown:
         #checando colisão com animais
@@ -347,15 +353,18 @@ while running:
     janela.blit(hud, (-200, height - 60))
 
 
-    #Moldura barra de vida
+    #Moldura barras
     largura_barra = 200
+    largura_barra_skill = 64
     altura_barra = 15
+    altura_barra_habilidade = 48
     raio_borda = 4
     espessura = 2
     x_barras = width / (LARGURA/10)
-    x_barra_habilidade = width / (LARGURA / 270)
     y_barra_stamina = height / (ALTURA/(ALTURA - 28))
     y_barra_vida = height / (ALTURA/(ALTURA - 44))
+    x_barra_habilidade = width / (LARGURA / 270)
+    y_barra_habilidade = y_barra_vida - 9
     
     #Fundo barra de stamina
     pg.draw.rect(janela, CINZA, (x_barras, y_barra_stamina, largura_barra, altura_barra), border_radius=raio_borda)
@@ -373,9 +382,14 @@ while running:
     pg.draw.rect(janela, MARROM_ESCURO, (x_barras, y_barra_stamina, largura_barra, altura_barra), espessura, border_radius=raio_borda)
 
     #Barra de habilidade
-    pg.draw.rect(janela, AZUL, (x_barra_habilidade, y_barra_vida, (largura_barra - 100) * ratio_habilidade, altura_barra), border_radius=raio_borda)
-    pg.draw.rect(janela, BRANCO, (x_barra_habilidade + 1, y_barra_vida, (largura_barra - 100 - 2) * ratio_habilidade, (altura_barra - 11)), border_radius=raio_borda)
-    pg.draw.rect(janela, MARROM_ESCURO, (x_barra_habilidade, y_barra_vida, (largura_barra - 100), altura_barra), espessura, border_radius=raio_borda)
+    if not cooldown_sprite:
+        janela.blit(hud_skill, (x_barra_habilidade, y_barra_habilidade))
+    else:
+        barra_branca = pg.transform.smoothscale(pg.image.load('assets/barra_branca.png'), (64 * ratio_habilidade, 48))
+        barra_branca.set_alpha(100)
+        janela.blit(hud_skill_cooldown, (x_barra_habilidade, y_barra_habilidade - 1))
+        janela.blit(barra_branca, (x_barra_habilidade, y_barra_habilidade))
+    pg.draw.rect(janela, MARROM_ESCURO, (x_barra_habilidade, y_barra_habilidade, largura_barra_skill, altura_barra_habilidade), espessura, border_radius=raio_borda)
 
     #movimentação dos animais
     for animal in Animais.animais_vivos:
