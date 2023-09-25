@@ -55,8 +55,8 @@ class Animais(pg.sprite.Sprite):
                     if colisao_amigavel(self, bloqueador):
                         escolher = False
 
-    def desenhar_animal(self, janela):
-        janela.blit(self.img, (self.x, self.y))
+    def desenhar_animal(self, janela, offset_x, offset_y):
+        janela.blit(self.img, (self.x - offset_x, self.y - offset_y))
         
     def morte(self):
         Animais.animais_vivos.remove(self)

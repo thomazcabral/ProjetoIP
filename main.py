@@ -209,9 +209,9 @@ for (x, y) in mapa.keys():
 mago = Mago(velocidade_padrao, stamina_padrao, Rio.rios, cooldown_habilidade_padrao, vida_padrao)
 
 #cria as paredes
-num_arvores = random.randint(4,8)
+num_arvores = random.randint(4,15)
 for j in range(num_arvores):
-    locals()['parede' + str(j)] = Parede(0.05, mago, Rio.rios)
+    locals()['parede' + str(j)] = Parede(0.05, mago, Rio.rios, LARGURA_MAPA, ALTURA_MAPA)
 
 # Spawnar os animais, foi escolhido 3, mas pode ser arbitrário
 pontos_animais = {}
@@ -239,12 +239,12 @@ while running:
     offset_x = mago.x - (largura_camera / 2)
     if offset_x < 0:
         offset_x = 0
-    elif offset_x + (largura_camera / 2) > LARGURA_MAPA:
+    elif offset_x + (largura_camera) > LARGURA_MAPA:
         offset_x = LARGURA_MAPA - largura_camera
     offset_y = mago.y - (altura_camera / 2)
     if offset_y < 0:
         offset_y = 0
-    elif offset_y + (altura_camera / 2) > ALTURA_MAPA:
+    elif offset_y + (altura_camera) > ALTURA_MAPA:
         offset_y = ALTURA_MAPA - altura_camera
     altura_camera = pg.display.get_surface().get_height()
 
@@ -332,7 +332,7 @@ while running:
     
 
     for j in range(num_arvores):
-        locals()['parede' + str(j)].desenhar_tronco()
+        locals()['parede' + str(j)].desenhar_tronco(offset_x, offset_y)
 
     if not cooldown:
         functions.draw_poder(cargas, janela)
@@ -349,15 +349,15 @@ while running:
         locals()['animal' + str(i)] = Animais(infos, nome, mago)
         locals()['animal' + str(i)].spawnar(mago, Parede.paredes, Rio.rios, Dragao.dragoes_vivos)
     for animal in Animais.animais_vivos:
-        animal.desenhar_animal(janela)
+        animal.desenhar_animal(janela, offset_x, offset_y)
     
-    mago.desenhar_mago(janela) #desenhando o mago
+    mago.desenhar_mago(janela, offset_x, offset_y) #desenhando o mago
 
     for dragao in Dragao.dragoes_vivos: #desenhando o dragao
-        dragao.desenhar_dragao(janela)
+        dragao.desenhar_dragao(janela, offset_x, offset_y)
 
     for j in range(num_arvores):
-        locals()['parede' + str(j)].desenhar_folhas()
+        locals()['parede' + str(j)].desenhar_folhas(offset_x, offset_y)
 
     ratio_stamina = mago.stamina / 1000
     ratio_habilidade = mago.cooldown_habilidade / 270

@@ -127,7 +127,7 @@ class Mago:
             if self.cooldown_habilidade == 270:
                 ultima_seta['SPACE'] = 0
 
-    def desenhar_mago(self, janela):
+    def desenhar_mago(self, janela, offset_x, offset_y):
         escala = 1/4
         imagem = pg.image.load('assets/mago_down.png')
         w, h = imagem.get_size()
@@ -135,4 +135,4 @@ class Mago:
         # como a imagem do mago é gerada 2/3 abaixo do y dele, a hitbox coincide com sua parte mais inferior
         self.altura = (h * escala) / 3
         redimensionar = pg.transform.smoothscale(self.img, ((w*escala), (h*escala)))
-        janela.blit(redimensionar, (self.x, self.y - 2 * self.altura))
+        janela.blit(redimensionar, (self.x - offset_x, self.y - 2 * self.altura - offset_y))
