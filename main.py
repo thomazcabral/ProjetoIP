@@ -110,21 +110,23 @@ direcoes = ['direita', 'esquerda', 'baixo', 'cima']
 direcoes2 = direcoes.copy()
 foz = False
 direcao_rio_inicial = random.choice(direcoes)
-direcoes2.pop(direcoes.index(direcao_rio_inicial))
-direcao_rio_final = random.choice(direcoes2)
-fluxo_rio = [direcao_rio_inicial, direcao_rio_final]
 direcao_rio = direcao_rio_inicial
-if ('direita' in fluxo_rio and 'esquerda' in fluxo_rio) or ('cima' in fluxo_rio and 'baixo' in fluxo_rio):
-    fluxo_rio = direcoes
-    fluxo_rio.remove(direcao_rio_final)
 
 if direcao_rio_inicial == 'direita':
     y = random.randrange(0, ALTURA_MAPA, 100)
+    if y > (ALTURA_MAPA / 2):
+        direcao_rio_final = 'cima'
+    else:
+        direcao_rio_final = 'baixo'
     mapa[(0, y)] = mapa[(50, y)] = mapa[(0, y + 50)] = mapa[(50, y + 50)] = 14
     x_vez = 0
     y_vez = y
 elif direcao_rio_inicial == 'esquerda':
     y = random.randrange(0, ALTURA_MAPA, 100)
+    if y > (ALTURA_MAPA / 2):
+        direcao_rio_final = 'cima'
+    else:
+        direcao_rio_final = 'baixo'
     ultimo = LARGURA_MAPA
     while ultimo % 50 != 0:
         ultimo -= 1
@@ -134,11 +136,19 @@ elif direcao_rio_inicial == 'esquerda':
     y_vez = y
 elif direcao_rio_inicial == 'baixo':
     x = random.randrange(0, LARGURA_MAPA, 100)
+    if x > (LARGURA_MAPA / 2):
+        direcao_rio_final = 'esquerda'
+    else:
+        direcao_rio_final = 'direita'
     mapa[(x, 0)] = mapa[(x, 50)] = mapa[(x + 50, 0)] = mapa[(x + 50, 50)] = 14
     x_vez = x
     y_vez = 0
 elif direcao_rio_inicial == 'cima':
     x = random.randrange(0, LARGURA_MAPA, 100)
+    if x > (LARGURA_MAPA / 2):
+        direcao_rio_final = 'esquerda'
+    else:
+        direcao_rio_final = 'direita'
     ultimo = ALTURA_MAPA
     while ultimo % 50 != 0:
         ultimo -= 1
@@ -146,14 +156,12 @@ elif direcao_rio_inicial == 'cima':
     mapa[(x, ultimo)] = mapa[(x, ultimo + 50)] = mapa[(x + 50, ultimo)] = mapa[(x + 50, ultimo + 50)] = 14
     x_vez = x
     y_vez = ultimo
+fluxo_rio = [direcao_rio_inicial, direcao_rio_final]
 Rio(x_vez, y_vez)
 functions.contorno_rio(mapa, x_vez, y_vez)
 
 while not foz:
-    if direcao_rio == direcao_rio_inicial:
-        direcao_rio = random.choice(fluxo_rio)
-    else:
-        direcao_rio = direcao_rio_inicial
+    direcao_rio = random.choice(fluxo_rio)
     if direcao_rio == 'direita':
         x_vez += 100
         if x_vez + 150 > LARGURA_MAPA:
@@ -177,6 +185,13 @@ while not foz:
     functions.contorno_rio(mapa, x_vez, y_vez)
     Rio(x_vez, y_vez)
 
+#cria a ponte
+ponte = False
+while not ponte:
+    bloco = random.choice(Rio.rios)
+    if mapa[(bloco.x - 100, bloco.y)] != 14 and mapa[(bloco.x + 100, bloco.y)] != 14:
+        bloco.construir_ponte(mapa)
+        ponte = True
 for x in range(0, LARGURA_MAPA, 50):
     for y in range(0, ALTURA_MAPA, 50):
         if mapa[(x, y)] == 1:
@@ -209,7 +224,7 @@ for (x, y) in mapa.keys():
 mago = Mago(velocidade_padrao, stamina_padrao, Rio.rios, cooldown_habilidade_padrao, vida_padrao)
 
 #cria as paredes
-num_arvores = random.randint(4,15)
+num_arvores = random.randint(10, 30)
 for j in range(num_arvores):
     locals()['parede' + str(j)] = Parede(0.05, mago, Rio.rios, LARGURA_MAPA, ALTURA_MAPA)
 
@@ -335,7 +350,7 @@ while running:
         locals()['parede' + str(j)].desenhar_tronco(offset_x, offset_y)
 
     if not cooldown:
-        functions.draw_poder(cargas, janela)
+        functions.draw_poder(cargas, janela, offset_x, offset_y)
 
     # há uma pequena chance de surgir um animal cada vez que o loop roda
     chance = random.randint(1,400)

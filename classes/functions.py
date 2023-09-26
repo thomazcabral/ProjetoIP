@@ -86,6 +86,6 @@ def contorno_rio(mapa, x_vez, y_vez):
             else:
                 mapa[(x_vez -50, y_vez + 50)] = 19
 
-def draw_poder(cargas, janela):
+def draw_poder(cargas, janela, offset_x, offset_y):
     for poder in cargas:
-        poder.draw(janela)
+        poder.draw(janela, offset_x, offset_y)
