@@ -9,25 +9,6 @@ from classes import Animais, Parede, Mago, Rio, Projectile, Dragao, functions
 hud = pg.transform.scale(pg.image.load('assets/hud.png'), (1800, 60)) #imagem da madeira do menu inferior
 hud_skill = pg.transform.smoothscale(pg.image.load('assets/projetil_skill_hud.png'), (64, 48))
 hud_skill_cooldown = pg.transform.scale(pg.image.load('assets/projetil_cooldown.png'), (64, 48))
-
-#animal1
-animal1_baixo = pg.transform.smoothscale(pg.image.load('assets/animal1_frente.png'), (50, 50))
-animal1_cima = pg.transform.smoothscale(pg.image.load('assets/animal1_costas.png'), (50, 50))
-animal1_direita = pg.transform.smoothscale(pg.image.load('assets/animal1_direita.png'), (50, 50))
-animal1_esquerda = pg.transform.flip(animal1_direita, True, False)
-
-#animal2
-animal2_baixo = pg.transform.smoothscale(pg.image.load('assets/animal2_frente.png'), (50, 50))
-animal2_cima = pg.transform.smoothscale(pg.image.load('assets/animal2_costas.png'), (50, 50))
-animal2_direita = animal2_baixo
-animal2_esquerda = animal2_cima
-
-#animal3
-animal3 = pg.transform.smoothscale(pg.image.load('assets/animal3.png'), (50, 50))
-animal3_direita = animal3
-animal3_esquerda = animal3
-animal3_cima = animal3
-animal3_baixo = animal3
     
 pg.init()
 
@@ -67,10 +48,32 @@ velocidade_rapida = 0.065
 
 #informações cruciais dos animais
 infos = {
-        "Animal 1": {'velocidade': velocidade_devagar, 'referencia': {'esquerda': animal1_esquerda, 'direita' : animal1_direita, 'cima' : animal1_cima, 'baixo' : animal1_baixo}},
-        "Animal 2": {'velocidade': velocidade_padrao, 'referencia': {'esquerda': animal2_esquerda, 'direita' : animal2_direita, 'cima' : animal2_cima, 'baixo' : animal2_baixo}},
-        "Animal 3": {'velocidade': velocidade_rapida, 'referencia': {'esquerda': animal3_esquerda, 'direita' : animal3_direita, 'cima' : animal3_cima, 'baixo' : animal3_baixo}}
+        "Animal 1": {'velocidade': velocidade_devagar, 'referencia': {}},
+        "Animal 2": {'velocidade': velocidade_padrao, 'referencia': {}},
+        "Animal 3": {'velocidade': velocidade_rapida, 'referencia': {}}
     }
+
+#animal1
+num_animais = 3
+num_frames = 3
+for k in range(num_animais):
+    direita = []
+    esquerda = []
+    cima = []
+    baixo = []
+    for i in range(num_frames):
+        baixo.append(pg.transform.smoothscale(pg.image.load(f'assets/animal{k + 1}_baixo{i + 1}.png'), (50, 50)))
+        cima.append(pg.transform.smoothscale(pg.image.load(f'assets/animal{k + 1}_cima{i + 1}.png'), (37, 55)))
+        direita.append(pg.transform.smoothscale(pg.image.load(f'assets/animal{k + 1}_direita{i + 1}.png'), (55, 55)))
+        esquerda.append(pg.transform.smoothscale(pg.image.load(f'assets/animal{k + 1}_esquerda{i + 1}.png'), (55, 55)))
+    infos[f'Animal {k + 1}']['referencia']['esquerda'] = esquerda
+    infos[f'Animal {k + 1}']['referencia']['direita'] = direita
+    infos[f'Animal {k + 1}']['referencia']['cima'] = cima
+    infos[f'Animal {k + 1}']['referencia']['baixo'] = baixo
+
+animal1_idle =  infos['Animal 1']['referencia']['baixo'][0]
+animal2_idle =  infos['Animal 2']['referencia']['baixo'][0]
+animal3_idle =  infos['Animal 3']['referencia']['baixo'][0]
 
 stamina_padrao = 1000
 cooldown_habilidade_padrao = 270
@@ -189,9 +192,10 @@ while not foz:
 ponte = False
 while not ponte:
     bloco = random.choice(Rio.rios)
-    if mapa[(bloco.x - 100, bloco.y)] != 14 and mapa[(bloco.x + 100, bloco.y)] != 14:
-        bloco.construir_ponte(mapa)
-        ponte = True
+    if (bloco.x - 100, bloco.y) in mapa.keys() and (bloco.x + 100, bloco.y) in mapa.keys():
+        if mapa[(bloco.x - 100, bloco.y)] != 14 and mapa[(bloco.x + 100, bloco.y)] != 14:
+            bloco.construir_ponte(mapa)
+            ponte = True
 for x in range(0, LARGURA_MAPA, 50):
     for y in range(0, ALTURA_MAPA, 50):
         if mapa[(x, y)] == 1:
@@ -235,7 +239,7 @@ for animal in infos.keys():
 for i in range(3):
     nome = random.choice([k for k in infos.keys()])
     locals()['animal' + str(i)] = Animais(infos, nome, mago)
-    locals()['animal' + str(i)].spawnar(mago, Parede.paredes, Rio.rios, Dragao.dragoes_vivos)
+    locals()['animal' + str(i)].spawnar(mago, Parede.paredes, Rio.rios, Dragao.dragoes_vivos, offset_x, offset_y)
 
 cargas = []
 
@@ -357,12 +361,12 @@ while running:
     total_vivos = len(Animais.animais_vivos)
     nenhum = True
     for animal in Animais.animais_vivos:
-        if not (animal.x < -1 * animal.largura or animal.x >= largura_camera or animal.y < -1 * animal.altura or animal.y > altura_camera):
+        if not (animal.x < offset_x -  animal.largura or animal.x >= offset_x + largura_camera or animal.y < offset_y - animal.altura or animal.y > offset_y + altura_camera):
             nenhum = False
     if nenhum or total_vivos == 0 or (chance == 1 and total_vivos <= 20): 
         nome = random.choice([j for j in infos.keys()])
         locals()['animal' + str(i)] = Animais(infos, nome, mago)
-        locals()['animal' + str(i)].spawnar(mago, Parede.paredes, Rio.rios, Dragao.dragoes_vivos)
+        locals()['animal' + str(i)].spawnar(mago, Parede.paredes, Rio.rios, Dragao.dragoes_vivos, offset_x, offset_y)
     for animal in Animais.animais_vivos:
         animal.desenhar_animal(janela, offset_x, offset_y)
     
@@ -449,9 +453,9 @@ while running:
     x_inicial = largura_camera - texto_timer.get_width() - 150
 
     #Blitando os sprites do animais no contador
-    janela.blit(animal1_baixo, (x_inicial - 200, altura_camera - 50))
-    janela.blit(animal2_baixo, (x_inicial - 100, altura_camera - 50))
-    janela.blit(animal3, (x_inicial, altura_camera - 50))
+    janela.blit(animal1_idle, (x_inicial - 200, altura_camera - 50))
+    janela.blit(animal2_idle, (x_inicial - 100, altura_camera - 50))
+    janela.blit(animal3_idle, (x_inicial, altura_camera - 50))
 
     for animal in reversed(pontos_animais.keys()): #contador dos animais
         if pontos_animais[animal] < 10:

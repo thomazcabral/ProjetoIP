@@ -20,22 +20,24 @@ class Animais(pg.sprite.Sprite):
         self.direita = infos[self.nome]['referencia']['direita']
         self.cima = infos[self.nome]['referencia']['cima']
         self.baixo = infos[self.nome]['referencia']['baixo']
-        self.img = self.baixo
+        self.img = self.baixo[0]
         self.raio = 100
         self.direcao = False
         self.mov_idle = 0
         self.velocidade_idle = 0.03
         self.repouso = 0
         self.mago = instancia_mago
+        self.estagio = 0
+        self.encurralado = False
         Animais.animais_vivos.append(self)
 
-    def spawnar(self, mago, paredes, rios, dragao):
+    def spawnar(self, mago, paredes, rios, dragao, offset_x, offset_y):
         w = pg.display.get_surface().get_width()
         h = pg.display.get_surface().get_height()
         escolher = False
         while not escolher:	
-            valorx = random.randint(0, w)	
-            valory = random.randint(0, h - 60)
+            valorx = random.randint(int(offset_x), int(offset_x + w))	
+            valory = random.randint(int(offset_y), int(offset_y + h - 60))
             # Só irão nascer animais em um raio maior que 300 px
             if ((mago.x + (mago.largura / 2) - valorx) ** 2 + (mago.y + (mago.altura / 2) - valory)** 2) ** (1/2) >= mago.raio:	
                 self.x = valorx	
@@ -74,18 +76,19 @@ class Animais(pg.sprite.Sprite):
         direcoes = ['direita', 'esquerda', 'baixo', 'cima']
         if not self.direcao and self.repouso == 0:
             self.direcao = random.choice(direcoes)
-            self.repouso = random.randint(160, 240)
-            self.mov_idle = random.randint(120,150)
+            self.repouso = random.randrange(150, 180)
+            self.mov_idle = random.randrange(120,150, 6)
             self.velocidade = self.velocidade_idle
-        if self.mov_idle == 0:
+        if self.estagio == 0 and self.mov_idle == 0:
+            self.encurralado = False
             self.direcao = False
             self.velocidade = self.velocidade_padrao
-        else: 
+        if self.mov_idle > 0: 
             self.mov_idle -= 1
         if self.repouso > 0:
             self.repouso -= 1
 
-        if ((distancia_x)**2 + (distancia_y)**2)**(1/2) <= raio_alerta:
+        if not self.encurralado and self.estagio == 0 and  ((distancia_x)**2 + (distancia_y)**2)**(1/2) <= raio_alerta:
             self.mov_idle = 0
             if abs(distancia_x) > abs(distancia_y):
                 self.velocidade = self.velocidade_padrao
@@ -101,17 +104,25 @@ class Animais(pg.sprite.Sprite):
 
         if self.direcao == 'direita':
             self.x += self.velocidade * variacao_tempo
-            self.img = self.direita
+            self.estagio += 0.5
+            self.img = self.direita[int(self.estagio % 3)]
         elif self.direcao == 'esquerda':
-            self.img = self.esquerda
+            self.estagio += 0.5
+            self.img = self.esquerda[int(self.estagio % 3)]
             self.x -= self.velocidade * variacao_tempo
         elif self.direcao == 'baixo':
-            self.img = self.baixo
+            self.estagio += 0.5
+            self.img = self.baixo[int(self.estagio % 3)]
             self.y += self.velocidade * variacao_tempo
         elif self.direcao == 'cima':
-            self.img = self.cima
+            self.estagio += 0.5
+            self.img = self.cima[int(self.estagio % 3)]
             self.y -= self.velocidade * variacao_tempo
+        if self.estagio == 3:
+            self.estagio = 0
         bloqueio = []
+        horizontal = ['esquerda', 'direita']
+        vertical = ['cima', 'baixo']
         for k in Animais.animais_vivos:
             if k != self:
                 bloqueio.append(k)
@@ -121,7 +132,14 @@ class Animais(pg.sprite.Sprite):
             bloqueio.append(k)
         for k in dragao:
             bloqueio.append(k)
-        for animal in bloqueio:
-            if colisao_amigavel(self, animal):
+        for coisa in bloqueio:
+            if colisao_amigavel(self, coisa):
+                self.encurralado = True
+                self.mov_idle = 36
                 self.x = antigo_x
                 self.y = antigo_y
+                if self.direcao in horizontal:
+                    self.direcao = random.choice(vertical)
+                elif self.direcao in vertical:
+                    self.direcao = random.choice(horizontal)
+
