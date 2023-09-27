@@ -104,18 +104,18 @@ class Animais(pg.sprite.Sprite):
 
         if self.direcao == 'direita':
             self.x += self.velocidade * variacao_tempo
-            self.estagio += 0.5
+            self.estagio += 0.25
             self.img = self.direita[int(self.estagio % 3)]
         elif self.direcao == 'esquerda':
-            self.estagio += 0.5
+            self.estagio += 0.25
             self.img = self.esquerda[int(self.estagio % 3)]
             self.x -= self.velocidade * variacao_tempo
         elif self.direcao == 'baixo':
-            self.estagio += 0.5
+            self.estagio += 0.25
             self.img = self.baixo[int(self.estagio % 3)]
             self.y += self.velocidade * variacao_tempo
         elif self.direcao == 'cima':
-            self.estagio += 0.5
+            self.estagio += 0.25
             self.img = self.cima[int(self.estagio % 3)]
             self.y -= self.velocidade * variacao_tempo
         if self.estagio == 3:

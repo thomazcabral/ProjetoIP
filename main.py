@@ -93,7 +93,7 @@ desenho_enfeites = []
 enfeites = {}
 
 #desenho dos detalhes no mapa
-num_tiles = 31
+num_tiles = 35
 num_enfeites = 11
 for i in range(num_tiles):
     tilemap.append(pg.transform.scale(pg.image.load(f'assets/tile{i + 1}.png'), (50, 50)))
@@ -188,14 +188,7 @@ while not foz:
     functions.contorno_rio(mapa, x_vez, y_vez)
     Rio(x_vez, y_vez)
 
-#cria a ponte
-ponte = False
-while not ponte:
-    bloco = random.choice(Rio.rios)
-    if (bloco.x - 100, bloco.y) in mapa.keys() and (bloco.x + 100, bloco.y) in mapa.keys():
-        if mapa[(bloco.x - 100, bloco.y)] != 14 and mapa[(bloco.x + 100, bloco.y)] != 14:
-            bloco.construir_ponte(mapa)
-            ponte = True
+
 for x in range(0, LARGURA_MAPA, 50):
     for y in range(0, ALTURA_MAPA, 50):
         if mapa[(x, y)] == 1:
@@ -232,6 +225,15 @@ num_arvores = random.randint(10, 30)
 for j in range(num_arvores):
     locals()['parede' + str(j)] = Parede(0.05, mago, Rio.rios, LARGURA_MAPA, ALTURA_MAPA)
 
+#cria a ponte
+ponte = False
+while not ponte:
+    bloco = random.choice(Rio.rios)
+    if (bloco.x - 100, bloco.y) in mapa.keys() and (bloco.x + 100, bloco.y) in mapa.keys():
+        if mapa[(bloco.x - 100, bloco.y)] != 14 and mapa[(bloco.x + 100, bloco.y)] != 14:
+            bloco.construir_ponte(mapa)
+            ponte = True
+            
 # Spawnar os animais, foi escolhido 3, mas pode ser arbitrário
 pontos_animais = {}
 for animal in infos.keys():
@@ -240,6 +242,16 @@ for i in range(3):
     nome = random.choice([k for k in infos.keys()])
     locals()['animal' + str(i)] = Animais(infos, nome, mago)
     locals()['animal' + str(i)].spawnar(mago, Parede.paredes, Rio.rios, Dragao.dragoes_vivos, offset_x, offset_y)
+
+#Poderes
+poderes = {}
+num_frames_poder = 15
+tipos_poder = 1
+for k in range(tipos_poder):
+    frames_poder = []
+    for i in range(num_frames_poder):
+        frames_poder.append(pg.image.load(f'assets/projetil{k + 1}_{i}.png'))
+    poderes[f'poder{k + 1}'] = frames_poder
 
 cargas = []
 
@@ -281,12 +293,12 @@ while running:
         #checando colisão com animais
         for animal in Animais.animais_vivos:
             for poder in cargas:
-                if poder.x < 1280 and poder.x > -40:
+                if offset_x - 40 <= poder.x < largura_camera + offset_x:
                     poder.x += poder.vel_x
                 else:
                     cargas.pop(cargas.index(poder))
                     cooldown = True
-                if poder.y < 720 and poder.y > -60:
+                if offset_y - 60 <= poder.y < altura_camera + offset_y:
                     poder.y += poder.vel_y
                 else:
                     cargas.pop(cargas.index(poder))
@@ -299,12 +311,12 @@ while running:
         #checando colisão com animais
         for dragao in Dragao.dragoes_vivos:
             for poder in cargas:
-                if poder.x < 1280 and poder.x > -40:
+                if offset_x - 40 <= poder.x < largura_camera + offset_x:
                     poder.x += poder.vel_x
                 else:
                     cargas.pop(cargas.index(poder))
                     cooldown = True
-                if poder.y < 720 and poder.y > -60:
+                if offset_y - 60 <= poder.y < altura_camera + offset_y:
                     poder.y += poder.vel_y
                 else:
                     cargas.pop(cargas.index(poder))
@@ -317,12 +329,12 @@ while running:
         #checando colisão com paredes        
         for parede in Parede.paredes:
             for poder in cargas:
-                if poder.x < 1280 and poder.x > -40:
+                if offset_x - 40 <= poder.x < largura_camera + offset_x:
                     poder.x += poder.vel_x
                 else:
                     cargas.pop(cargas.index(poder))
                     cooldown = True
-                if poder.y < 720 and poder.y > -60:
+                if offset_y - 60 <= poder.y < altura_camera + offset_y:
                     poder.y += poder.vel_y
                 else:
                     cargas.pop(cargas.index(poder))
@@ -482,7 +494,7 @@ while running:
 
 
             if len(cargas) < 1:
-                cargas.append(Projectile(round(mago.x + mago.largura //2), round(mago.y + mago.altura//2), 4, facing_x, facing_y))
+                cargas.append(Projectile(round(mago.x + mago.largura //2), round(mago.y + mago.altura//2), 4, facing_x, facing_y, poderes['poder1']))
 
     janela.blit(janela, (0,0)) #atualiza o timer e as barras corretamente
 
