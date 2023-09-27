@@ -5,7 +5,7 @@ from .utilidades import *
 class Parede:
     paredes = []
     raio = 200
-    def __init__(self, proporcao, instancia_mago, rios):
+    def __init__(self, proporcao, instancia_mago, rios, LARGURA_MAPA, ALTURA_MAPA):
         w = pg.display.get_surface().get_width()
         h = pg.display.get_surface().get_height()
         frutifera = random.randint(0,1)
@@ -22,8 +22,8 @@ class Parede:
            bloqueio.append(parede)
         while not escolher and i < 500:
             i += 1
-            self.x = random.randint(0, int(w - self.largura))
-            self.y = random.randint(50, int(h - 60 - self.altura))
+            self.x = random.randint(0, int(LARGURA_MAPA - self.largura))
+            self.y = random.randint(50, int(ALTURA_MAPA - 60 - self.altura))
             if not colisao_amigavel(self, instancia_mago):
                 escolher = True
             for bloqueador in bloqueio:
@@ -37,15 +37,15 @@ class Parede:
             self.y = h
         Parede.paredes.append(self)
         
-    def desenhar_tronco(self):
+    def desenhar_tronco(self, offset_x, offset_y):
         self.img = pg.image.load('assets/tronco.png')
         x = self.img.get_size()[0]
         y = self.img.get_size()[1]
         escala = self.largura * 2/ x
         redimensionar = pg.transform.smoothscale(self.img, ((x*escala), (y*escala)))
-        janela.blit(redimensionar, (self.x - (self.largura / 2), self.y))
+        janela.blit(redimensionar, (self.x - (self.largura / 2) - offset_x, self.y - offset_y))
 
-    def desenhar_folhas(self):
+    def desenhar_folhas(self, offset_x, offset_y):
         if self.frutifera:
             self.img = pg.image.load('assets/folhas_frutiferas.png')
         else:
@@ -55,4 +55,4 @@ class Parede:
         y = self.img.get_size()[1]
         escala = self.largura * 3/ x
         redimensionar = pg.transform.smoothscale(self.img, ((x*escala), (y*escala)))
-        janela.blit(redimensionar, (self.x - (self.largura), self.y - 5 * self.altura))
+        janela.blit(redimensionar, (self.x - (self.largura) - offset_x, self.y - 5 * self.altura - offset_y))

@@ -47,18 +47,18 @@ class Dragao(pg.sprite.Sprite):
                     if colisao_amigavel(self, bloqueador):
                         escolher = False
 
-    def desenhar_dragao(self, janela):
+    def desenhar_dragao(self, janela, offset_x, offset_y):
         # Falta adicionar imagens/animações do dragão
         dragao_imagem = pg.transform.smoothscale(pg.image.load('assets/lobo.png'), (50,50))
         
         if self.direcao == 'direita' or self.direcao == False: # O dragão sendo inicialmente desenhado para o lado direito
-            janela.blit(dragao_imagem, (self.x, self.y))
+            janela.blit(dragao_imagem, (self.x - offset_x, self.y - offset_y))
         elif self.direcao == 'esquerda':
-            janela.blit(dragao_imagem, (self.x, self.y))
+            janela.blit(dragao_imagem, (self.x - offset_x, self.y - offset_y))
         elif self.direcao == 'cima':
-            janela.blit(dragao_imagem, (self.x, self.y))
+            janela.blit(dragao_imagem, (self.x - offset_x, self.y - offset_y))
         elif self.direcao == 'baixo':
-            janela.blit(dragao_imagem, (self.x, self.y))
+            janela.blit(dragao_imagem, (self.x - offset_x, self.y - offset_y))
 
     def morte(self):
         Dragao.dragoes_vivos.remove(self)
