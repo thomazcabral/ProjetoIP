@@ -7,20 +7,26 @@ class Dragao(pg.sprite.Sprite):
     # Responsável por cada dragão vivo
     dragoes_vivos = []
 
-    def __init__(self, velocidade_padrao, nome, instancia_mago, vida):
+    def __init__(self, velocidade_padrao, nome, instancia_mago, vida, frames_dragao):
         super().__init__()
         w = pg.display.get_surface().get_width()
         h = pg.display.get_surface().get_height()
-        self.largura = w / (25.6)
-        self.altura = h / (14.4)
+        self.largura = 198
+        self.altura = 128
         self.nome = nome
         self.velocidade_padrao = velocidade_padrao
         self.velocidade = self.velocidade_padrao
         self.raio = 100 # caso o raio do dragão for diferente do raio dos outros animais, talvez exista um problema na colisão entre eles
         self.vida = vida
         self.direcao = False
+        self.esquerda = frames_dragao['Dragao']['referencia']['esquerda']
+        self.direita = frames_dragao['Dragao']['referencia']['direita']
+        self.cima = frames_dragao['Dragao']['referencia']['cima']
+        self.baixo = frames_dragao['Dragao']['referencia']['baixo']
+        self.img = self.baixo[0]
         self.repouso = 0
         self.mago = instancia_mago
+        self.estagio = 0
         Dragao.dragoes_vivos.append(self)
 
     def spawnar(self, mago, paredes, rios):
@@ -49,16 +55,7 @@ class Dragao(pg.sprite.Sprite):
 
     def desenhar_dragao(self, janela, offset_x, offset_y):
         # Falta adicionar imagens/animações do dragão
-        dragao_imagem = pg.transform.smoothscale(pg.image.load('assets/lobo.png'), (50,50))
-        
-        if self.direcao == 'direita' or self.direcao == False: # O dragão sendo inicialmente desenhado para o lado direito
-            janela.blit(dragao_imagem, (self.x - offset_x, self.y - offset_y))
-        elif self.direcao == 'esquerda':
-            janela.blit(dragao_imagem, (self.x - offset_x, self.y - offset_y))
-        elif self.direcao == 'cima':
-            janela.blit(dragao_imagem, (self.x - offset_x, self.y - offset_y))
-        elif self.direcao == 'baixo':
-            janela.blit(dragao_imagem, (self.x - offset_x, self.y - offset_y))
+        janela.blit(self.img, (self.x - offset_x, self.y - offset_y))
 
     def morte(self):
         Dragao.dragoes_vivos.remove(self)
@@ -91,21 +88,27 @@ class Dragao(pg.sprite.Sprite):
 
         if self.direcao == 'direita':
             self.x += self.velocidade * variacao_tempo
+            self.estagio += 0.2
+            self.img = self.direita[int(self.estagio % 3)]
         elif self.direcao == 'esquerda':
             self.x -= self.velocidade * variacao_tempo
+            self.estagio += 0.2
+            self.img = self.esquerda[int(self.estagio % 3)]
         elif self.direcao == 'baixo':
             self.y += self.velocidade * variacao_tempo
+            self.estagio += 0.2
+            self.img = self.baixo[int(self.estagio % 3)]
         elif self.direcao == 'cima':
             self.y -= self.velocidade * variacao_tempo
+            self.estagio += 0.2
+            self.img = self.cima[int(self.estagio % 3)]
+        if self.estagio == 3:
+            self.estagio = 0
         self.velocidade = self.velocidade_padrao
         bloqueio = []
         for k in Dragao.dragoes_vivos:
             if k != self:
                 bloqueio.append(k)
-        for k in paredes:
-            bloqueio.append(k)
-        for k in rios:
-            bloqueio.append(k)
         for animal in bloqueio:
             if colisao_amigavel(self, animal):
                 self.x = antigo_x

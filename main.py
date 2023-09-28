@@ -53,7 +53,7 @@ infos = {
         "Animal 3": {'velocidade': velocidade_rapida, 'referencia': {}}
     }
 
-#animal1
+#animal
 num_animais = 3
 num_frames = 3
 for k in range(num_animais):
@@ -74,6 +74,26 @@ for k in range(num_animais):
 animal1_idle =  infos['Animal 1']['referencia']['baixo'][0]
 animal2_idle =  infos['Animal 2']['referencia']['baixo'][0]
 animal3_idle =  infos['Animal 3']['referencia']['baixo'][0]
+
+frames_dragao = {
+    "Dragao": {'referencia': {}},
+}
+
+direita_dragao = []
+esquerda_dragao = []
+cima_dragao = []
+baixo_dragao = []
+for i in range(num_frames):
+    baixo_dragao.append(pg.transform.smoothscale(pg.image.load(f'assets/dragao_baixo_{i + 1}.png'), (198, 128)))
+    cima_dragao.append(pg.transform.smoothscale(pg.image.load(f'assets/dragao_cima_{i + 1}.png'), (198, 128)))
+    direita_dragao.append(pg.transform.smoothscale(pg.image.load(f'assets/dragao_direita_{i + 1}.png'), (198, 128)))
+    esquerda_dragao.append(pg.transform.smoothscale(pg.image.load(f'assets/dragao_esquerda_{i + 1}.png'), (198, 128)))
+
+frames_dragao['Dragao']['referencia']['baixo'] = baixo_dragao
+frames_dragao['Dragao']['referencia']['cima'] = cima_dragao
+frames_dragao['Dragao']['referencia']['direita'] = direita_dragao
+frames_dragao['Dragao']['referencia']['esquerda'] = esquerda_dragao
+
 
 stamina_padrao = 1000
 cooldown_habilidade_padrao = 270
@@ -256,7 +276,7 @@ for k in range(tipos_poder):
 cargas = []
 
 vida_dragao = 450
-dragao = Dragao(velocidade_padrao, "Dragao", mago, vida_dragao)
+dragao = Dragao(velocidade_padrao, "Dragao", mago, vida_dragao, frames_dragao)
 dragao.spawnar(mago, Parede.paredes, Rio.rios)
 
 # Loop principal
@@ -384,12 +404,12 @@ while running:
     
     mago.desenhar_mago(janela, offset_x, offset_y) #desenhando o mago
 
-    for dragao in Dragao.dragoes_vivos: #desenhando o dragao
-        dragao.desenhar_dragao(janela, offset_x, offset_y)
-
     for j in range(num_arvores):
         locals()['parede' + str(j)].desenhar_folhas(offset_x, offset_y)
 
+    for dragao in Dragao.dragoes_vivos: #desenhando o dragao
+        dragao.desenhar_dragao(janela, offset_x, offset_y)
+        
     ratio_stamina = mago.stamina / 1000
     ratio_habilidade = mago.cooldown_habilidade / 270
     ratio_vida = mago.vida / 1000
