@@ -331,6 +331,22 @@ while running:
     for animal in Animais.animais_vivos:
         animal.desenhar_animal(janela, offset_x, offset_y)
     
+
+    #adicionar coletavel.x/y
+    chance = random.randint(1, 150) #mudar o 200
+    total_poderes = len(Coletaveis.coletaveis_ativos)
+    nenhum = True
+    for coletavel in Coletaveis.coletaveis_ativos:
+        tempo_aumentado = functions.colisao_coleta(mago, coletavel)
+        if tempo_aumentado:
+            duracao_timer += tempo_aumentado
+    if total_poderes == 0 or (chance == 1 and total_poderes <= 10): 
+        nome = poderes_chao[f"Coletavel {random.randint(1,4)}"]
+        locals()['coletavel' + str(i)] = Coletaveis(nome)
+        locals()['coletavel' + str(i)].spawnar(mago, Parede.paredes, Rio.rios, Dragao.dragoes_vivos, Animais.animais_vivos, offset_x, offset_y)
+    for coletavel in Coletaveis.coletaveis_ativos:
+        coletavel.desenhar_coletavel(janela, offset_x, offset_y)
+    
     mago.desenhar_mago(janela, offset_x, offset_y) #desenhando o mago
 
     for j in range(num_arvores):
@@ -354,24 +370,6 @@ while running:
     texto_timer = fonte_tempo.render(f'Tempo: {minutos:02d}:{segundos:02d}', True, BRANCO) #texto, situação de aparecimento, cor
     janela.blit(texto_timer, (largura_camera - texto_timer.get_width() - 15, altura_camera - 50))
     x_inicial = largura_camera - texto_timer.get_width() - 150
-
-    #adicionar coletavel.x/y
-    chance = random.randint(1, 200) #mudar o 200
-    total_poderes = len(Coletaveis.coletaveis_ativos)
-    nenhum = True
-    for coletavel in Coletaveis.coletaveis_ativos:
-        tempo_aumentado = functions.colisao_coleta(mago, coletavel)
-        if tempo_aumentado:
-            duracao_timer += tempo_aumentado
-        if not (coletavel.x < offset_x -  coletavel.largura or coletavel.x >= offset_x + largura_camera or coletavel.y < offset_y - coletavel.altura or coletavel.y > offset_y + altura_camera):
-            nenhum = False #thomaz lixo tem que tirar
-    if nenhum or total_poderes == 0 or (chance == 1 and total_poderes <= 10): 
-        nome = poderes_chao[f"Coletavel {random.randint(1,4)}"]
-        locals()['coletavel' + str(i)] = Coletaveis(nome)
-        locals()['coletavel' + str(i)].spawnar(mago, Parede.paredes, Rio.rios, Dragao.dragoes_vivos, Animais.animais_vivos, offset_x, offset_y)
-    for coletavel in Coletaveis.coletaveis_ativos:
-        coletavel.desenhar_coletavel(janela, offset_x, offset_y)
-
 
     #Moldura barras
     largura_barra = 200
