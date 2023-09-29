@@ -12,11 +12,18 @@ def borda(variavel, width, height):
 
 
 # Colisão do player com os animais
+def colisao_poder(poder, animal, pontos_animais): #desacelerar e matar
+    if colisao_amigavel(poder, animal):
+            if poder.nome == 'poder1':
+                colisao(poder, animal, pontos_animais)
+            elif poder.nome == 'poder2':
+                animal.congelado = 30
+
 def colisao(player, objeto, pontos_animais):
     if player.x + player.largura >= objeto.x >= player.x or objeto.x + objeto.largura >= player.x >= objeto.x:
         if player.y + player.altura >= objeto.y >= player.y or objeto.y + objeto.altura >= player.y >= objeto.y:
-            objeto.morte()
-            pontos_animais[objeto.nome] += 1
+                objeto.morte()
+                pontos_animais[objeto.nome] += 1
 
 def colisao_dragao(player, objeto):
     if player.x + player.largura >= objeto.x >= player.x or objeto.x + objeto.largura >= player.x >= objeto.x:
@@ -26,6 +33,22 @@ def colisao_dragao(player, objeto):
 def colisao_amigavel(objeto1, objeto2):
     if (objeto2.x + objeto2.largura >= objeto1.x >= objeto2.x or objeto1.x + objeto1.largura >= objeto2.x >= objeto1.x) and (objeto2.y + objeto2.altura >= objeto1.y >= objeto2.y or objeto1.y + objeto1.altura >= objeto2.y >= objeto1.y):
         return True
+
+def colisao_coleta(mago, objeto):
+    if colisao_amigavel(mago, objeto):
+        if objeto.nome == 'vida':
+            mago.vida += 100
+            if mago.vida >= 1000:
+                mago.vida = 1000
+        elif objeto.nome == 'tempo':
+            objeto.morte()
+            return 5 #tempo a ser adicionado
+        elif objeto.nome == 'velocidade':
+            mago.rapido = 30
+        elif 'poder' in objeto.nome:
+            mago.poder = objeto.nome 
+        objeto.morte()
+    return False
 
 # Verifica se o dragão entra em contato com o mago e dá dano no mago
 def dano_dragao(mago, dragao):
