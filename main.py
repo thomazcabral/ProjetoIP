@@ -2,56 +2,10 @@ import pygame as pg
 import sys
 import time
 import random
-from classes.utilidades import *
 from classes import Animais, Parede, Mago, Rio, Projectile, Dragao, functions, Coletaveis
-
-#Imagens
-hud = pg.transform.scale(pg.image.load('assets/hud.png'), (1800, 60)) #imagem da madeira do menu inferior
-hud_skill = pg.transform.smoothscale(pg.image.load('assets/projetil_skill_hud.png'), (64, 48))
-hud_skill_cooldown = pg.transform.scale(pg.image.load('assets/projetil_cooldown.png'), (64, 48))
-
+from constantes import *
+    
 pg.init()
-
-BRANCO = (255, 255, 255)
-VERDE = (0, 230, 0)
-PRETO = (0, 0, 0)
-AMARELO = (255, 255, 0)
-VERMELHO = (255, 0, 0)
-AZUL = (95,159,159)
-AZUL_CLARO = (173,216,230)
-MARROM = (210, 180, 140)
-MARROM_ESCURO = (123, 66, 48)
-CINZA = (211,211,211)
-
-LARGURA_MAPA = 1280 * 2
-ALTURA_MAPA = 720 * 2
-# Configurações da janela
-largura_camera = 1280
-altura_camera = 720
-offset_x = 0
-offset_y = 0
-janela = pg.display.set_mode((largura_camera, altura_camera))
-tela_cheia = False
-
-
-fonte_contador = pg.font.Font('assets/CW_BITMP.ttf', 18) #fonte importada para o menu inferior
-fonte_tempo = pg.font.Font('assets/CW_BITMP.ttf', 24)
-duracao_timer = 60 #em segundos
-comeco_timer = time.time() #início do timer
-clock = pg.time.Clock()
-
-#velocidade dos animais
-velocidade_devagar = 0.05
-velocidade_padrao = 0.0575
-velocidade_rapida = 0.065
-
-
-#informações cruciais dos animais
-infos = {
-        "Animal 1": {'velocidade': velocidade_devagar, 'referencia': {}},
-        "Animal 2": {'velocidade': velocidade_padrao, 'referencia': {}},
-        "Animal 3": {'velocidade': velocidade_rapida, 'referencia': {}}
-    }
 
 #animal
 num_animais = 3
@@ -93,17 +47,6 @@ frames_dragao['Dragao']['referencia']['baixo'] = baixo_dragao
 frames_dragao['Dragao']['referencia']['cima'] = cima_dragao
 frames_dragao['Dragao']['referencia']['direita'] = direita_dragao
 frames_dragao['Dragao']['referencia']['esquerda'] = esquerda_dragao
-
-
-stamina_padrao = 1000
-cooldown_habilidade_padrao = 270
-vida_padrao = 1000
-
-ponto_inicial = (100, 100)
-
-
-setas = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0}
-ultima_seta = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0, 'SPACE': 0}
 
 
 #gera cada pequeno pedaço de grama do mapa
@@ -250,9 +193,12 @@ ponte = False
 while not ponte:
     bloco = random.choice(Rio.rios)
     if (bloco.x - 100, bloco.y) in mapa.keys() and (bloco.x + 100, bloco.y) in mapa.keys():
-        if mapa[(bloco.x - 100, bloco.y)] != 14 and mapa[(bloco.x + 100, bloco.y)] != 14:
+        ponte = True
+        for rio in Rio.rios:
+            if (bloco.x - 100, bloco.y) == (rio.x, rio.y  ) or (bloco.x + 100, bloco.y) == (rio.x, rio.y):
+                ponte = False
+        if ponte:
             bloco.construir_ponte(mapa)
-            ponte = True
             
 # Spawnar os animais, foi escolhido 3, mas pode ser arbitrário
 pontos_animais = {}
@@ -266,11 +212,11 @@ for i in range(3):
 #Poderes
 poderes = {}
 num_frames_poder = 15
-tipos_poder = 1
+tipos_poder = 2
 for k in range(tipos_poder):
     frames_poder = []
     for i in range(num_frames_poder):
-        frames_poder.append(pg.image.load(f'assets/projetil{k + 1}_{i}.png'))
+        frames_poder.append(pg.image.load(f'assets/projetil{1}_{i}.png'))
     poderes[f'poder{k + 1}'] = frames_poder
 
 cargas = []
@@ -278,6 +224,7 @@ cargas = []
 vida_dragao = 450
 dragao = Dragao(velocidade_padrao, "Dragao", mago, vida_dragao, frames_dragao)
 dragao.spawnar(mago, Parede.paredes, Rio.rios)
+
 
 # Loop principal
 running = True
@@ -309,59 +256,32 @@ while running:
     else:
         cooldown_sprite = True
     
-    if not cooldown:
+    for poder in cargas:
+        if offset_x - 40 <= poder.x < largura_camera + offset_x:
+            poder.x += poder.vel_x
+        else:
+            cargas.pop(cargas.index(poder))
+        if offset_y - 60 <= poder.y < altura_camera + offset_y:
+            poder.y += poder.vel_y
+        else:
+            cargas.pop(cargas.index(poder))
         #checando colisão com animais
         for animal in Animais.animais_vivos:
-            for poder in cargas:
-                if offset_x - 40 <= poder.x < largura_camera + offset_x:
-                    poder.x += poder.vel_x
-                else:
-                    cargas.pop(cargas.index(poder))
-                    cooldown = True
-                if offset_y - 60 <= poder.y < altura_camera + offset_y:
-                    poder.y += poder.vel_y
-                else:
-                    cargas.pop(cargas.index(poder))
-                    cooldown = True
-                if functions.colisao_amigavel(poder, animal):
-                    functions.colisao(poder, animal, pontos_animais)
-                    cargas.pop(cargas.index(poder))
-                    cooldown = True
+            if functions.colisao_amigavel(poder, animal):
+                functions.colisao_poder(poder, animal, pontos_animais)
+                cargas.pop(cargas.index(poder))
 
         #checando colisão com animais
         for dragao in Dragao.dragoes_vivos:
-            for poder in cargas:
-                if offset_x - 40 <= poder.x < largura_camera + offset_x:
-                    poder.x += poder.vel_x
-                else:
-                    cargas.pop(cargas.index(poder))
-                    cooldown = True
-                if offset_y - 60 <= poder.y < altura_camera + offset_y:
-                    poder.y += poder.vel_y
-                else:
-                    cargas.pop(cargas.index(poder))
-                    cooldown = True
-                if functions.colisao_amigavel(poder, dragao):
-                    functions.colisao_dragao(poder, dragao)
-                    cargas.pop(cargas.index(poder))
-                    cooldown = True
+            if functions.colisao_amigavel(poder, dragao):
+                functions.colisao_dragao(poder, dragao)
+                cargas.pop(cargas.index(poder))
+
 
         #checando colisão com paredes        
         for parede in Parede.paredes:
-            for poder in cargas:
-                if offset_x - 40 <= poder.x < largura_camera + offset_x:
-                    poder.x += poder.vel_x
-                else:
-                    cargas.pop(cargas.index(poder))
-                    cooldown = True
-                if offset_y - 60 <= poder.y < altura_camera + offset_y:
-                    poder.y += poder.vel_y
-                else:
-                    cargas.pop(cargas.index(poder))
-                    cooldown = True
-                if functions.colisao_amigavel(poder, parede):
-                    cargas.pop(cargas.index(poder))
-                    cooldown = True
+            if functions.colisao_amigavel(poder, parede):
+                cargas.pop(cargas.index(poder))
 
     keys = pg.key.get_pressed()
 
@@ -380,7 +300,7 @@ while running:
         for y in range(0, ALTURA_MAPA, 50):
             if (x, y) in enfeites.keys():
                 janela.blit(desenho_enfeites[enfeites[(x, y)][0] - 1], (enfeites[(x, y)][1][0] - offset_x, enfeites[(x, y)][1][1] - offset_y))
-
+    
 
     for j in range(num_arvores):
         locals()['parede' + str(j)].desenhar_tronco(offset_x, offset_y)
@@ -409,7 +329,7 @@ while running:
 
     for dragao in Dragao.dragoes_vivos: #desenhando o dragao
         dragao.desenhar_dragao(janela, offset_x, offset_y)
-        
+
     ratio_stamina = mago.stamina / 1000
     ratio_habilidade = mago.cooldown_habilidade / 270
     ratio_vida = mago.vida / 1000
@@ -417,29 +337,39 @@ while running:
     #lugar de informacões
     janela.blit(hud, (-200, altura_camera - 60))
 
-    #por enquanto sem funcionalidade, mas deve funcionar de maneira similar a infos
-    poderes_chao = {
-        'Poder 1': 'fogo',
-        'Poder 2': 'velocidade',
-        'Poder 3': 'tempo',
-        'Poder 4': 'vida'
-        }
+    #criação do timer
+    tempo_atual = time.time()
+    tempo_passado = tempo_atual - comeco_timer
+    tempo_restante = max(0, duracao_timer - tempo_passado) #evite com que o timer dê errado quando acabe
+    minutos, segundos = divmod(int(tempo_restante), 60) #faz a divisão correta entre minutos e segundos
+    texto_timer = fonte_tempo.render(f'Tempo: {minutos:02d}:{segundos:02d}', True, BRANCO) #texto, situação de aparecimento, cor
+    janela.blit(texto_timer, (largura_camera - texto_timer.get_width() - 15, altura_camera - 50))
+    x_inicial = largura_camera - texto_timer.get_width() - 150
 
+    poderes_chao = {
+        'Coletavel 1': 'poder1', #fogo
+        'Coletavel 5': 'velocidade', #aumenta a velocidade do mago
+        'Coletavel 4': 'tempo',
+        'Coletavel 3': 'vida',
+        'Coletavel 2': 'poder2' #diminui a velocidade do animal
+    }
+    
     #adicionar coletavel.x/y
     chance = random.randint(1, 200) #mudar o 200
     total_poderes = len(Coletaveis.coletaveis_ativos)
     nenhum = True
     for coletavel in Coletaveis.coletaveis_ativos:
+        tempo_aumentado = functions.colisao_coleta(mago, coletavel)
+        if tempo_aumentado:
+            duracao_timer += tempo_aumentado
         if not (coletavel.x < offset_x -  coletavel.largura or coletavel.x >= offset_x + largura_camera or coletavel.y < offset_y - coletavel.altura or coletavel.y > offset_y + altura_camera):
-            nenhum = False
+            nenhum = False #thomaz lixo tem que tirar
     if nenhum or total_poderes == 0 or (chance == 1 and total_poderes <= 10): 
-        nome = poderes_chao[f"Poder {random.randint(1,4)}"]
+        nome = poderes_chao[f"Coletavel {random.randint(5,5)}"]
         locals()['coletavel' + str(i)] = Coletaveis(nome)
         locals()['coletavel' + str(i)].spawnar(mago, Parede.paredes, Rio.rios, Dragao.dragoes_vivos, Animais.animais_vivos, offset_x, offset_y)
     for coletavel in Coletaveis.coletaveis_ativos:
         coletavel.desenhar_coletavel(janela, offset_x, offset_y)
-
-
 
 
     #Moldura barras
@@ -483,14 +413,10 @@ while running:
     #movimentação dos animais
     for animal in Animais.animais_vivos:
         animal.move(mago, variacao_tempo, Parede.paredes, Rio.rios, Dragao.dragoes_vivos, velocidade_devagar, velocidade_rapida)
-    # Colisão com as bordas
+    # Colisão com as bordas 
     mago = functions.borda(mago, LARGURA_MAPA, ALTURA_MAPA)
     for animal in Animais.animais_vivos: 
         animal = functions.colisao(mago, animal, pontos_animais)
-    
-    #checa quando o mago coleta o poder
-    for coletavel in Coletaveis.coletaveis_ativos:
-        functions.colisao_dragao(mago, coletavel)
 
     # Movimentação do dragao
     for dragao in Dragao.dragoes_vivos:
@@ -503,14 +429,7 @@ while running:
     mago.move(keys, variacao_tempo, setas, ultima_seta, Parede.paredes, Rio.rios)
 
 
-    #criação do timer
-    tempo_atual = time.time()
-    tempo_passado = tempo_atual - comeco_timer
-    tempo_restante = max(0, duracao_timer - tempo_passado) #evite com que o timer dê errado quando acabe
-    minutos, segundos = divmod(int(tempo_restante), 60) #faz a divisão correta entre minutos e segundos
-    texto_timer = fonte_tempo.render(f'Tempo: {minutos:02d}:{segundos:02d}', True, BRANCO) #texto, situação de aparecimento, cor
-    janela.blit(texto_timer, (largura_camera - texto_timer.get_width() - 15, altura_camera - 50))
-    x_inicial = largura_camera - texto_timer.get_width() - 150
+     
 
     #Blitando os sprites do animais no contador
     janela.blit(animal1_idle, (x_inicial - 200, altura_camera - 50))
@@ -525,7 +444,7 @@ while running:
         janela.blit(contador, (x_inicial + 27, altura_camera - 57))
         x_inicial -= 100
     
-    if not cooldown:
+    if mago.poder:
         if keys[pg.K_SPACE]:
             if ultima_seta['LEFT'] != 0:
                 facing_x = -1
@@ -542,8 +461,8 @@ while running:
 
 
             if len(cargas) < 1:
-                cargas.append(Projectile(round(mago.x + mago.largura //2), round(mago.y + mago.altura//2), 4, facing_x, facing_y, poderes['poder1']))
-
+                cargas.append(Projectile(round(mago.x + mago.largura //2), round(mago.y + mago.altura//2), 4, facing_x, facing_y, mago.poder, poderes[mago.poder]))
+            mago.poder = False
     janela.blit(janela, (0,0)) #atualiza o timer e as barras corretamente
 
     pg.display.update()
