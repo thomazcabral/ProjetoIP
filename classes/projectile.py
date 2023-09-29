@@ -1,7 +1,7 @@
 import pygame as pg
 
 class Projectile(object):
-    def __init__(self,x,y,radius,facing_x, facing_y, frames):
+    def __init__(self,x,y,radius,facing_x, facing_y, nome, frames):
         self.largura = 50
         self.altura = 50
         self.x = x
@@ -9,10 +9,11 @@ class Projectile(object):
         self.radius = radius
         self.facing_x = facing_x
         self.facing_y = facing_y
-        self.vel_x = 0.75 * facing_x
-        self.vel_y = 0.5 * facing_y
+        self.vel_x = 12.5 * facing_x
+        self.vel_y = 10 * facing_y
         self.frames = frames
         self.estagio = 0
+        self.nome = nome
         
         if self.facing_x == 1:
             self.y -= 30
