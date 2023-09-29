@@ -229,10 +229,11 @@ for k in range(tipos_poder):
     poderes[f'poder{k + 1}'] = frames_poder
 cooldown_poder = 0
 tempo_poder = False
-cargas = []
+cargas_mago = []
+cargas_dragao = []
 
 vida_dragao = 450
-dragao = Dragao(velocidade_padrao, "Dragao", mago, vida_dragao, frames_dragao)
+dragao = Dragao(velocidade_padrao, "Dragao", mago, vida_dragao, frames_dragao, poderes['poder1'])
 dragao.spawnar(mago, Parede.paredes, Rio.rios)
 
 # Loop principal
@@ -265,32 +266,53 @@ while running:
     else:
         cooldown_sprite = True
     
-    for poder in cargas:
+    for poder in cargas_mago:
         if offset_x - 40 <= poder.x < largura_camera + offset_x:
             poder.x += poder.vel_x
         else:
-            cargas.pop(cargas.index(poder))
+            cargas_mago.pop(cargas_mago.index(poder))
         if offset_y - 60 <= poder.y < altura_camera + offset_y:
             poder.y += poder.vel_y
         else:
-            cargas.pop(cargas.index(poder))
+            cargas_mago.pop(cargas_mago.index(poder))
         #checando colisão com animais
         for animal in Animais.animais_vivos:
             if functions.colisao_amigavel(poder, animal):
                 functions.colisao_poder(poder, animal, pontos_animais)
-                cargas.pop(cargas.index(poder))
+                cargas_mago.pop(cargas_mago.index(poder))
 
         #checando colisão com animais
         for dragao in Dragao.dragoes_vivos:
             if functions.colisao_amigavel(poder, dragao):
                 functions.colisao_dragao(poder, dragao)
-                cargas.pop(cargas.index(poder))
+                cargas_mago.pop(cargas_mago.index(poder))
 
 
         #checando colisão com paredes        
         for parede in Parede.paredes:
             if functions.colisao_amigavel(poder, parede):
-                cargas.pop(cargas.index(poder))
+                cargas_mago.pop(cargas_mago.index(poder))
+
+    for poder in cargas_dragao:
+        if offset_x - 40 <= poder.x < largura_camera + offset_x:
+            poder.x += poder.vel_x
+        else:
+            cargas_dragao.pop(cargas_dragao.index(poder))
+        if offset_y - 60 <= poder.y < altura_camera + offset_y:
+            poder.y += poder.vel_y
+        else:
+            cargas_dragao.pop(cargas_dragao.index(poder))
+        #checando colisão com animais
+        if functions.colisao_amigavel(poder, mago):
+            mago.vida -= 250
+            cargas_dragao.pop(cargas_dragao.index(poder))
+
+        #checando colisão com animais
+        #checando colisão com paredes        
+        for parede in Parede.paredes:
+            if functions.colisao_amigavel(poder, parede):
+                cargas_dragao.pop(cargas_dragao.index(poder))
+
 
     keys = pg.key.get_pressed()
 
@@ -315,7 +337,8 @@ while running:
         locals()['parede' + str(j)].desenhar_tronco(offset_x, offset_y)
 
     if not cooldown:
-        functions.draw_poder(cargas, janela, offset_x, offset_y)
+        functions.draw_poder(cargas_mago, janela, offset_x, offset_y)
+    functions.draw_poder(cargas_dragao, janela, offset_x, offset_y)
 
     # há uma pequena chance de surgir um animal cada vez que o loop roda
     chance = random.randint(1,400)
@@ -419,7 +442,7 @@ while running:
 
     # Movimentação do dragao
     for dragao in Dragao.dragoes_vivos:
-        dragao.move(mago, variacao_tempo, Parede.paredes, Rio.rios, velocidade_devagar, velocidade_rapida)
+        dragao.move(mago, variacao_tempo, Parede.paredes, Rio.rios, velocidade_devagar, velocidade_rapida, cargas_dragao)
 
     # Colisão do dragao com o mago
     for dragao in Dragao.dragoes_vivos:  
@@ -461,7 +484,7 @@ while running:
                 else:
                     facing_y = 1
                     facing_x = 0
-                cargas.append(Projectile(round(mago.x + mago.largura //2), round(mago.y + mago.altura//2), 4, facing_x, facing_y, mago.poder, poderes[mago.poder]))
+                cargas_mago.append(Projectile(round(mago.x + mago.largura //2), round(mago.y + mago.altura//2), 4, facing_x, facing_y, mago.poder, poderes[mago.poder]))
         if tempo_poder:
             tempo_poder -=1
             if cooldown_poder > 0:
