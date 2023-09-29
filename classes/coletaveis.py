@@ -6,11 +6,11 @@ from .utilidades import *
 class Coletaveis:
     coletaveis_ativos = []
 
-    def __init__(self):
-        self.nome = "Fogo"
+    def __init__(self, nome):
+        self.nome = nome
         self.largura = 50
         self.altura = 50
-        self.img = pg.transform.smoothscale(pg.image.load('assets/projetil1_0.png'), (64, 48))
+        self.img = pg.transform.smoothscale(pg.image.load('assets/projetil1_0.png'), (1000, 1000))
 
     def spawnar(self, mago, paredes, rios, dragao, animais, offset_x, offset_y):
         w = pg.display.get_surface().get_width()
@@ -44,3 +44,14 @@ class Coletaveis:
     
     def morte(self):
         Coletaveis.coletaveis_ativos.remove(self)
+    
+    def tipo_poder(self):
+        if self.nome == 'fogo':
+            #mudar o lugar de onde o fogo está sendo atirado, não entendo o código
+        if self.nome == 'velocidade':
+            #reduzir a velocidade, simples
+        if self.nome == 'tempo':
+            #aumentar o tempo, simples também
+        if self.nome == 'vida':
+            #aumentar a vida, trivial
+            
