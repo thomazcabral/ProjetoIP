@@ -4,7 +4,6 @@ import time
 import random
 from classes import Animais, Parede, Mago, Rio, Projectile, Dragao, functions, Coletaveis
 from constantes import *
-    
 pg.init()
 
 #animal
@@ -32,6 +31,8 @@ animal3_idle =  infos['Animal 3']['referencia']['baixo'][0]
 frames_dragao = {
     "Dragao": {'referencia': {}},
 }
+
+
 
 direita_dragao = []
 esquerda_dragao = []
@@ -71,6 +72,14 @@ for x in range(0, LARGURA_MAPA, 50):
             numero = 1
         mapa[(x, y)] = numero
 
+
+poderes_chao = {
+    'Coletavel 1': 'poder1', #fogo
+    'Coletavel 4': 'tempo',
+    'Coletavel 3': 'vida',
+    'Coletavel 2': 'poder2' #diminui a velocidade do animal
+}
+    
 
 direcoes = ['direita', 'esquerda', 'baixo', 'cima']
 direcoes2 = direcoes.copy()
@@ -218,13 +227,13 @@ for k in range(tipos_poder):
     for i in range(num_frames_poder):
         frames_poder.append(pg.image.load(f'assets/projetil{1}_{i}.png'))
     poderes[f'poder{k + 1}'] = frames_poder
-
+cooldown_poder = 0
+tempo_poder = False
 cargas = []
 
 vida_dragao = 450
 dragao = Dragao(velocidade_padrao, "Dragao", mago, vida_dragao, frames_dragao)
 dragao.spawnar(mago, Parede.paredes, Rio.rios)
-
 
 # Loop principal
 running = True
@@ -346,14 +355,6 @@ while running:
     janela.blit(texto_timer, (largura_camera - texto_timer.get_width() - 15, altura_camera - 50))
     x_inicial = largura_camera - texto_timer.get_width() - 150
 
-    poderes_chao = {
-        'Coletavel 1': 'poder1', #fogo
-        'Coletavel 5': 'velocidade', #aumenta a velocidade do mago
-        'Coletavel 4': 'tempo',
-        'Coletavel 3': 'vida',
-        'Coletavel 2': 'poder2' #diminui a velocidade do animal
-    }
-    
     #adicionar coletavel.x/y
     chance = random.randint(1, 200) #mudar o 200
     total_poderes = len(Coletaveis.coletaveis_ativos)
@@ -365,7 +366,7 @@ while running:
         if not (coletavel.x < offset_x -  coletavel.largura or coletavel.x >= offset_x + largura_camera or coletavel.y < offset_y - coletavel.altura or coletavel.y > offset_y + altura_camera):
             nenhum = False #thomaz lixo tem que tirar
     if nenhum or total_poderes == 0 or (chance == 1 and total_poderes <= 10): 
-        nome = poderes_chao[f"Coletavel {random.randint(5,5)}"]
+        nome = poderes_chao[f"Coletavel {random.randint(1,4)}"]
         locals()['coletavel' + str(i)] = Coletaveis(nome)
         locals()['coletavel' + str(i)].spawnar(mago, Parede.paredes, Rio.rios, Dragao.dragoes_vivos, Animais.animais_vivos, offset_x, offset_y)
     for coletavel in Coletaveis.coletaveis_ativos:
@@ -446,23 +447,30 @@ while running:
     
     if mago.poder:
         if keys[pg.K_SPACE]:
-            if ultima_seta['LEFT'] != 0:
-                facing_x = -1
-                facing_y = 0
-            elif ultima_seta['RIGHT'] != 0:
-                facing_x = 1
-                facing_y = 0
-            elif ultima_seta['UP'] != 0:
-                facing_y = -1
-                facing_x = 0
-            else:
-                facing_y = 1
-                facing_x = 0
-
-
-            if len(cargas) < 1:
+            if not tempo_poder:
+                tempo_poder = 100
+            if tempo_poder > 0 and cooldown_poder == 0:
+                cooldown_poder = 20
+                if ultima_seta['LEFT'] != 0:
+                    facing_x = -1
+                    facing_y = 0
+                elif ultima_seta['RIGHT'] != 0:
+                    facing_x = 1
+                    facing_y = 0
+                elif ultima_seta['UP'] != 0:
+                    facing_y = -1
+                    facing_x = 0
+                else:
+                    facing_y = 1
+                    facing_x = 0
                 cargas.append(Projectile(round(mago.x + mago.largura //2), round(mago.y + mago.altura//2), 4, facing_x, facing_y, mago.poder, poderes[mago.poder]))
-            mago.poder = False
+        if tempo_poder:
+            tempo_poder -=1
+            if cooldown_poder > 0:
+                cooldown_poder -= 1
+            if tempo_poder <= 0:
+                tempo_poder = False
+                mago.poder = False
     janela.blit(janela, (0,0)) #atualiza o timer e as barras corretamente
 
     pg.display.update()

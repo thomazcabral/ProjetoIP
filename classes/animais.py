@@ -128,7 +128,7 @@ class Animais(pg.sprite.Sprite):
             self.estagio += self.velocidade_animacao
             self.img = self.cima[int(self.estagio % 3)]
             self.y -= self.velocidade * variacao_tempo
-        if self.estagio == 3:
+        if self.estagio >= 3:
             self.estagio = 0
         bloqueio = []
         horizontal = ['esquerda', 'direita']

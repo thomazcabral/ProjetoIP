@@ -24,7 +24,6 @@ class Mago:
                 if colisao_amigavel(self, rio):
                     escolheu = False
         self.velocidade = velocidade
-        self.velocidade_padrao = velocidade
         self.stamina = stamina
         self.vida = vida
         self.cooldown_habilidade = cooldown_habilidade
@@ -32,8 +31,6 @@ class Mago:
         self.img = pg.image.load('assets/mago_down.png')
         self.raio = 300
         self.poder = False
-        self.rapido = 0
-
     def move(self, keys, variacao_tempo, setas, ultima_seta, paredes, rios):
         #método usado pra conferir qual tecla foi usada mais recentemente
         if keys[pg.K_RIGHT] or keys[pg.K_d]:
@@ -80,11 +77,6 @@ class Mago:
         antigo_x = self.x
         antigo_y = self.y
 
-        if self.rapido > 0:
-            self.rapido -= 1
-            self.velocidade = self.velocidade_padrao * 2
-        else:
-            self.velocidade = self.velocidade_padrao
         if escolhida:
             if escolhida == 'RIGHT':
                 self.img = pg.image.load('assets/mago_right.png')

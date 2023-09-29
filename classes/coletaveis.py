@@ -10,8 +10,8 @@ class Coletaveis:
         self.nome = nome
         w = pg.display.get_surface().get_width()
         h = pg.display.get_surface().get_height()
-        self.largura = w / (25.6)
-        self.altura = h / (14.4)
+        self.largura = w / (40)
+        self.altura = h  / (22.5)
         self.img = pg.transform.scale(pg.image.load(f'assets/{self.nome}.png'), (self.largura, self.altura))
         self.raio = 100
         Coletaveis.coletaveis_ativos.append(self)

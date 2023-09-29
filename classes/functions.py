@@ -42,9 +42,7 @@ def colisao_coleta(mago, objeto):
                 mago.vida = 1000
         elif objeto.nome == 'tempo':
             objeto.morte()
-            return 5 #tempo a ser adicionado
-        elif objeto.nome == 'velocidade':
-            mago.rapido = 30
+            return 20 #tempo a ser adicionado
         elif 'poder' in objeto.nome:
             mago.poder = objeto.nome 
         objeto.morte()
