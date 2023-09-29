@@ -1,6 +1,10 @@
 import pygame as pg
 import random
-from .utilidades import *
+from .functions import *
+
+largura_camera = 1280
+altura_camera = 720
+janela = pg.display.set_mode((largura_camera, altura_camera))
 
 class Parede:
     paredes = []
