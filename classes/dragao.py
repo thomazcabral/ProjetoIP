@@ -13,10 +13,10 @@ class Dragao(pg.sprite.Sprite):
         self.altura = 128
         self.nome = nome
         self.velocidade_padrao = velocidade_padrao
-        self.velocidade = self.velocidade_padrao
+        self.velocidade = 0
         self.raio = 100 # caso o raio do dragão for diferente do raio dos outros animais, talvez exista um problema na colisão entre eles
         self.vida = vida
-        self.direcao = False
+        self.direcao = 'baixo'
         self.esquerda = frames_dragao['Dragao']['referencia']['esquerda']
         self.direita = frames_dragao['Dragao']['referencia']['direita']
         self.cima = frames_dragao['Dragao']['referencia']['cima']
@@ -71,8 +71,8 @@ class Dragao(pg.sprite.Sprite):
         antigo_y = self.y
         
         if self.estado == 'parado' and ((distancia_x)**2 + (distancia_y)**2)**(1/2) <= raio_alerta:
+            self.velocidade = self.velocidade_padrao
             if abs(distancia_x) > abs(distancia_y):
-                self.velocidade = self.velocidade_padrao
                 if distancia_x < 0:
                     self.direcao = 'esquerda'
                 else:
@@ -87,27 +87,47 @@ class Dragao(pg.sprite.Sprite):
             self.velocidade = 0
             self.estado = 'parado'
         elif self.estado == 'andando':
-            if self.direcao == 'direita':
-                self.x += self.velocidade * variacao_tempo
-                self.estagio += 0.2
-                self.img = self.direita[int(self.estagio % 3)]
-            elif self.direcao == 'esquerda':
-                self.x -= self.velocidade * variacao_tempo
-                self.estagio += 0.2
-                self.img = self.esquerda[int(self.estagio % 3)]
-            elif self.direcao == 'baixo':
-                self.y += self.velocidade * variacao_tempo
-                self.estagio += 0.2
-                self.img = self.baixo[int(self.estagio % 3)]
-            elif self.direcao == 'cima':
-                self.y -= self.velocidade * variacao_tempo
-                self.estagio += 0.2
-                self.img = self.cima[int(self.estagio % 3)]
-            if self.estagio == 3:
-                self.estagio = 0
-        if mago.x <= (self.x + self.largura / 2) <= mago.x + mago.largura or mago.y <= (self.y + self.altura / 2) == mago.y + mago.altura:
-            self.estado = 'atirando'
-        self.velocidade = self.velocidade_padrao
+            self.velocidade = self.velocidade_padrao
+    
+        if self.direcao == 'direita':
+            self.x += self.velocidade * variacao_tempo
+            self.estagio += 0.2
+            self.img = self.direita[int(self.estagio % 3)]
+            if self.x >= mago.x:
+                self.estado = 'atirando'
+        elif self.direcao == 'esquerda':
+            self.x -= self.velocidade * variacao_tempo
+            self.estagio += 0.2
+            self.img = self.esquerda[int(self.estagio % 3)]
+            if self.x <= mago.x:
+                self.estado = 'atirando'
+        elif self.direcao == 'baixo':
+            self.y += self.velocidade * variacao_tempo
+            self.estagio += 0.2
+            self.img = self.baixo[int(self.estagio % 3)]
+            if self.y >= mago.y:
+                self.estado = 'atirando'
+        elif self.direcao == 'cima':
+            self.y -= self.velocidade * variacao_tempo
+            self.estagio += 0.2
+            self.img = self.cima[int(self.estagio % 3)]
+            if self.y <= mago.y:
+                self.estado = 'atirando'
+        if self.estagio == 3:
+            self.estagio = 0
+        
+        if self.estado == 'atirando':
+            self.velocidade = 0
+            if abs(distancia_x) > abs(distancia_y):
+                if distancia_x < 0:
+                    self.direcao = 'esquerda'
+                else:
+                    self.direcao = 'direita'
+            else:
+                if distancia_y < 0:
+                    self.direcao = 'cima'
+                else:
+                    self.direcao = 'baixo'
         bloqueio = []
         for k in Dragao.dragoes_vivos:
             if k != self:
