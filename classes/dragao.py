@@ -1,6 +1,6 @@
 import pygame as pg
 import random
-from .utilidades import *
+from .functions import *
 
 
 class Dragao(pg.sprite.Sprite):
@@ -9,8 +9,6 @@ class Dragao(pg.sprite.Sprite):
 
     def __init__(self, velocidade_padrao, nome, instancia_mago, vida, frames_dragao):
         super().__init__()
-        w = pg.display.get_surface().get_width()
-        h = pg.display.get_surface().get_height()
         self.largura = 198
         self.altura = 128
         self.nome = nome
@@ -27,6 +25,7 @@ class Dragao(pg.sprite.Sprite):
         self.repouso = 0
         self.mago = instancia_mago
         self.estagio = 0
+        self.estado = 'parado'
         Dragao.dragoes_vivos.append(self)
 
     def spawnar(self, mago, paredes, rios):
@@ -70,8 +69,8 @@ class Dragao(pg.sprite.Sprite):
         distancia_y = mago.y - self.y
         antigo_x = self.x
         antigo_y = self.y
-
-        if ((distancia_x)**2 + (distancia_y)**2)**(1/2) <= raio_alerta:
+        
+        if self.estado == 'parado' and ((distancia_x)**2 + (distancia_y)**2)**(1/2) <= raio_alerta:
             if abs(distancia_x) > abs(distancia_y):
                 self.velocidade = self.velocidade_padrao
                 if distancia_x < 0:
@@ -83,27 +82,31 @@ class Dragao(pg.sprite.Sprite):
                     self.direcao = 'cima'
                 else:
                     self.direcao = 'baixo'
-        else:
+            self.estado = 'andando'
+        elif ((distancia_x)**2 + (distancia_y)**2)**(1/2) > raio_alerta:
             self.velocidade = 0
-
-        if self.direcao == 'direita':
-            self.x += self.velocidade * variacao_tempo
-            self.estagio += 0.2
-            self.img = self.direita[int(self.estagio % 3)]
-        elif self.direcao == 'esquerda':
-            self.x -= self.velocidade * variacao_tempo
-            self.estagio += 0.2
-            self.img = self.esquerda[int(self.estagio % 3)]
-        elif self.direcao == 'baixo':
-            self.y += self.velocidade * variacao_tempo
-            self.estagio += 0.2
-            self.img = self.baixo[int(self.estagio % 3)]
-        elif self.direcao == 'cima':
-            self.y -= self.velocidade * variacao_tempo
-            self.estagio += 0.2
-            self.img = self.cima[int(self.estagio % 3)]
-        if self.estagio == 3:
-            self.estagio = 0
+            self.estado = 'parado'
+        elif self.estado == 'andando':
+            if self.direcao == 'direita':
+                self.x += self.velocidade * variacao_tempo
+                self.estagio += 0.2
+                self.img = self.direita[int(self.estagio % 3)]
+            elif self.direcao == 'esquerda':
+                self.x -= self.velocidade * variacao_tempo
+                self.estagio += 0.2
+                self.img = self.esquerda[int(self.estagio % 3)]
+            elif self.direcao == 'baixo':
+                self.y += self.velocidade * variacao_tempo
+                self.estagio += 0.2
+                self.img = self.baixo[int(self.estagio % 3)]
+            elif self.direcao == 'cima':
+                self.y -= self.velocidade * variacao_tempo
+                self.estagio += 0.2
+                self.img = self.cima[int(self.estagio % 3)]
+            if self.estagio == 3:
+                self.estagio = 0
+        if mago.x <= (self.x + self.largura / 2) <= mago.x + mago.largura or mago.y <= (self.y + self.altura / 2) == mago.y + mago.altura:
+            self.estado = 'atirando'
         self.velocidade = self.velocidade_padrao
         bloqueio = []
         for k in Dragao.dragoes_vivos:
