@@ -2,123 +2,14 @@ import pygame as pg
 import sys
 import time
 import random
-from classes import Inimigos, Parede, Retangulo, Rio, Projectile, Lobo
+from classes.utilidades import *
+from classes import Animais, Parede, Mago, Rio, Projectile, Dragao, functions
 
 #Imagens
 hud = pg.transform.scale(pg.image.load('assets/hud.png'), (1800, 60)) #imagem da madeira do menu inferior
 hud_skill = pg.transform.smoothscale(pg.image.load('assets/projetil_skill_hud.png'), (64, 48))
 hud_skill_cooldown = pg.transform.scale(pg.image.load('assets/projetil_cooldown.png'), (64, 48))
 
-#animal1
-animal1_baixo = [pg.transform.smoothscale(pg.image.load('assets/animal1_frente.png'), (50, 50))]
-animal1_cima = [pg.transform.smoothscale(pg.image.load('assets/animal1_costas.png'), (50, 50))]
-animal1_direita = [pg.transform.smoothscale(pg.image.load('assets/sapo_direita_sprite1.png'), (50, 50)), 
-                   pg.transform.smoothscale(pg.image.load('assets/sapo_direita_sprite2.png'), (50, 50)),
-                   pg.transform.smoothscale(pg.image.load('assets/sapo_direita_sprite3.png'), (50, 50)),
-                   pg.transform.smoothscale(pg.image.load('assets/sapo_direita_sprite4.png'), (50, 50))]
-animal1_esquerda = [pg.transform.flip(animal1_direita[0], True, False)]
-
-#animal2
-animal2_baixo = [pg.transform.smoothscale(pg.image.load('assets/animal2_frente.png'), (50, 50))]
-animal2_cima = [pg.transform.smoothscale(pg.image.load('assets/animal2_costas.png'), (50, 50))]
-animal2_direita = animal2_baixo
-animal2_esquerda = animal2_cima
-
-#animal3
-animal3 = [pg.transform.smoothscale(pg.image.load('assets/animal3.png'), (50, 50))]
-animal3_direita = animal3
-animal3_esquerda = animal3
-animal3_cima = animal3
-animal3_baixo = animal3
-
-# Colisão com as bordas
-def borda(variavel, width, height):
-    if variavel.x < 0:
-        variavel.x = 0
-    if variavel.x > width - variavel.largura:
-        variavel.x = width - variavel.largura
-    if variavel.y < 0:
-        variavel.y = 0
-    if variavel.y > height - variavel.altura - 60:
-        variavel.y = height - variavel.altura - 60
-    return variavel
-
-
-# Colisão do player com os animais
-def colisao(player, objeto):
-    if player.x + player.largura >= objeto.x >= player.x or objeto.x + objeto.largura >= player.x >= objeto.x:
-        if player.y + player.altura >= objeto.y >= player.y or objeto.y + objeto.altura >= player.y >= objeto.y:
-            objeto.morte()
-            pontos_inimigos[objeto.nome] += 1
-
-def colisao_lobo(player, objeto):
-    if player.x + player.largura >= objeto.x >= player.x or objeto.x + objeto.largura >= player.x >= objeto.x:
-        if player.y + player.altura >= objeto.y >= player.y or objeto.y + objeto.altura >= player.y >= objeto.y:
-            objeto.morte()
-
-def colisao_amigavel(objeto1, objeto2):
-    if (objeto2.x + objeto2.largura >= objeto1.x >= objeto2.x or objeto1.x + objeto1.largura >= objeto2.x >= objeto1.x) and (objeto2.y + objeto2.altura >= objeto1.y >= objeto2.y or objeto1.y + objeto1.altura >= objeto2.y >= objeto1.y):
-        return True
-
-# Verifica se o lobo entra em contato com o mago e dá dano no mago
-def dano_lobo(mago, lobo):
-    if mago.x + mago.largura >= lobo.x >= mago.x or mago.x + mago.largura >= lobo.x + lobo.largura >= mago.x:
-        if mago.y + mago.altura >= lobo.y >= mago.y or mago.y + mago.altura >= lobo.y + lobo.altura >= mago.y:
-            mago.vida -= 10
-            if mago.vida <= 0:
-                mago.vida = 0
-            lobo.velocidade = 0
-
-#cria as bordas do rio
-def contorno_rio(mapa, x_vez, y_vez):
-    if (x_vez, y_vez + 100) in mapa.keys():
-        if mapa[(x_vez, y_vez + 100)] != 14 and mapa[(x_vez, y_vez + 100)] != 15:
-            if mapa[(x_vez, y_vez + 100)] == 17:
-                mapa[(x_vez, y_vez + 100)] = 20
-            else:
-                mapa[(x_vez, y_vez + 100)] = 16
-            if (x_vez + 50, y_vez + 100) in mapa.keys():
-                if mapa[(x_vez + 50, y_vez + 100)] == 19:
-                    mapa[(x_vez + 50, y_vez + 100)] = 23
-                else:
-                    mapa[(x_vez + 50, y_vez + 100)] = 16
-    if (x_vez + 100, y_vez) in mapa.keys():
-        if mapa[(x_vez + 100, y_vez)] != 14 and mapa[(x_vez + 100, y_vez)] != 15:
-            if  mapa[(x_vez + 100, y_vez)] == 16:
-                mapa[(x_vez + 100, y_vez)] = 20
-            else:
-                mapa[(x_vez + 100, y_vez)] = 17   
-    if (x_vez + 100, y_vez + 50) in mapa.keys():
-        if mapa[(x_vez + 100, y_vez + 50)] != 14 and mapa[(x_vez + 100, y_vez + 50)] != 15:
-            if mapa[(x_vez + 100, y_vez + 50)] == 18:
-                mapa[(x_vez + 100, y_vez + 50)] = 21
-            else:
-                mapa[(x_vez + 100, y_vez + 50)] = 17
-    if (x_vez, y_vez - 50) in mapa.keys():
-        if mapa[(x_vez, y_vez - 50)] != 14 and mapa[(x_vez, y_vez - 50)] != 15:
-            if mapa[(x_vez, y_vez - 50)] == 17:
-                mapa[(x_vez, y_vez - 50)] = 21
-            else:
-                mapa[(x_vez, y_vez - 50)] = 18
-    if (x_vez + 50, y_vez - 50) in mapa.keys():
-        if mapa[(x_vez + 50, y_vez - 50)] != 14 and mapa[(x_vez + 50, y_vez - 50)] != 15:
-            if mapa[(x_vez + 50, y_vez - 50)] == 19:
-                mapa[(x_vez + 50, y_vez - 50)] = 22
-            else:
-                mapa[(x_vez + 50, y_vez - 50)] = 18
-    if (x_vez - 50, y_vez) in mapa.keys():
-        if mapa[(x_vez - 50, y_vez)] != 14 and mapa[(x_vez - 50, y_vez)] != 15:
-            if mapa[(x_vez - 50, y_vez)] == 16:
-                mapa[(x_vez - 50, y_vez)] = 23
-            else:
-                mapa[(x_vez - 50, y_vez)] = 19
-    if (x_vez -50, y_vez + 50) in mapa.keys():
-        if mapa[(x_vez -50, y_vez + 50)] != 14 and mapa[(x_vez -50, y_vez + 50)] != 15:
-            if mapa[(x_vez -50, y_vez + 50)] == 18:
-                mapa[(x_vez -50, y_vez + 50)] = 22
-            else:
-                mapa[(x_vez -50, y_vez + 50)] = 19
-    
 pg.init()
 
 BRANCO = (255, 255, 255)
@@ -132,10 +23,14 @@ MARROM = (210, 180, 140)
 MARROM_ESCURO = (123, 66, 48)
 CINZA = (211,211,211)
 
+LARGURA_MAPA = 1280 * 2
+ALTURA_MAPA = 720 * 2
 # Configurações da janela
-LARGURA = 1280
-ALTURA = 720
-janela = pg.display.set_mode((LARGURA, ALTURA))
+largura_camera = 1280
+altura_camera = 720
+offset_x = 0
+offset_y = 0
+janela = pg.display.set_mode((largura_camera, altura_camera))
 tela_cheia = False
 
 
@@ -153,10 +48,52 @@ velocidade_rapida = 0.065
 
 #informações cruciais dos animais
 infos = {
-        "Animal 1": {'velocidade': velocidade_devagar, 'referencia': {'esquerda': animal1_esquerda, 'direita' : animal1_direita, 'cima' : animal1_cima, 'baixo' : animal1_baixo}},
-        "Animal 2": {'velocidade': velocidade_padrao, 'referencia': {'esquerda': animal2_esquerda, 'direita' : animal2_direita, 'cima' : animal2_cima, 'baixo' : animal2_baixo}},
-        "Animal 3": {'velocidade': velocidade_rapida, 'referencia': {'esquerda': animal3_esquerda, 'direita' : animal3_direita, 'cima' : animal3_cima, 'baixo' : animal3_baixo}}
+        "Animal 1": {'velocidade': velocidade_devagar, 'referencia': {}},
+        "Animal 2": {'velocidade': velocidade_padrao, 'referencia': {}},
+        "Animal 3": {'velocidade': velocidade_rapida, 'referencia': {}}
     }
+
+#animal
+num_animais = 3
+num_frames = 3
+for k in range(num_animais):
+    direita = []
+    esquerda = []
+    cima = []
+    baixo = []
+    for i in range(num_frames):
+        baixo.append(pg.transform.smoothscale(pg.image.load(f'assets/animal{k + 1}_baixo{i + 1}.png'), (50, 50)))
+        cima.append(pg.transform.smoothscale(pg.image.load(f'assets/animal{k + 1}_cima{i + 1}.png'), (37, 55)))
+        direita.append(pg.transform.smoothscale(pg.image.load(f'assets/animal{k + 1}_direita{i + 1}.png'), (55, 55)))
+        esquerda.append(pg.transform.smoothscale(pg.image.load(f'assets/animal{k + 1}_esquerda{i + 1}.png'), (55, 55)))
+    infos[f'Animal {k + 1}']['referencia']['esquerda'] = esquerda
+    infos[f'Animal {k + 1}']['referencia']['direita'] = direita
+    infos[f'Animal {k + 1}']['referencia']['cima'] = cima
+    infos[f'Animal {k + 1}']['referencia']['baixo'] = baixo
+
+animal1_idle =  infos['Animal 1']['referencia']['baixo'][0]
+animal2_idle =  infos['Animal 2']['referencia']['baixo'][0]
+animal3_idle =  infos['Animal 3']['referencia']['baixo'][0]
+
+#tudo relacionado ao dragao
+frames_dragao = {
+    "Dragao": {'referencia': {}},
+}
+
+direita_dragao = []
+esquerda_dragao = []
+cima_dragao = []
+baixo_dragao = []
+for i in range(num_frames):
+    baixo_dragao.append(pg.transform.smoothscale(pg.image.load(f'assets/dragao_baixo_{i + 1}.png'), (198, 128)))
+    cima_dragao.append(pg.transform.smoothscale(pg.image.load(f'assets/dragao_cima_{i + 1}.png'), (198, 128)))
+    direita_dragao.append(pg.transform.smoothscale(pg.image.load(f'assets/dragao_direita_{i + 1}.png'), (198, 128)))
+    esquerda_dragao.append(pg.transform.smoothscale(pg.image.load(f'assets/dragao_esquerda_{i + 1}.png'), (198, 128)))
+
+frames_dragao['Dragao']['referencia']['baixo'] = baixo_dragao
+frames_dragao['Dragao']['referencia']['cima'] = cima_dragao
+frames_dragao['Dragao']['referencia']['direita'] = direita_dragao
+frames_dragao['Dragao']['referencia']['esquerda'] = esquerda_dragao
 
 stamina_padrao = 1000
 cooldown_habilidade_padrao = 270
@@ -166,7 +103,7 @@ ponto_inicial = (100, 100)
 
 
 setas = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0}
-ultima_seta = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0, 'SPACE': 0}
+ultima_seta = {'RIGHT': 0, 'LEFT': 0, 'UP': 0, 'DOWN': 0, 'SPACE': 0, 'Q' : 0, 'E' : 0}
 
 
 #gera cada pequeno pedaço de grama do mapa
@@ -176,14 +113,14 @@ desenho_enfeites = []
 enfeites = {}
 
 #desenho dos detalhes no mapa
-num_tiles = 31
+num_tiles = 35
 num_enfeites = 11
 for i in range(num_tiles):
     tilemap.append(pg.transform.scale(pg.image.load(f'assets/tile{i + 1}.png'), (50, 50)))
 for j in range(num_enfeites):
     desenho_enfeites.append(pg.transform.scale(pg.image.load(f'assets/enfeite{j + 1}.png'), (50, 50)))
-for x in range(0, LARGURA, 50):
-    for y in range(0, ALTURA, 50):
+for x in range(0, LARGURA_MAPA, 50):
+    for y in range(0, ALTURA_MAPA, 50):
         aleatorio = random.randint(1,10)
         if aleatorio == 1:
             numero = random.randint(2, 13)
@@ -196,22 +133,24 @@ direcoes = ['direita', 'esquerda', 'baixo', 'cima']
 direcoes2 = direcoes.copy()
 foz = False
 direcao_rio_inicial = random.choice(direcoes)
-direcoes2.pop(direcoes.index(direcao_rio_inicial))
-direcao_rio_final = random.choice(direcoes2)
-fluxo_rio = [direcao_rio_inicial, direcao_rio_final]
 direcao_rio = direcao_rio_inicial
-if ('direita' in fluxo_rio and 'esquerda' in fluxo_rio) or ('cima' in fluxo_rio and 'baixo' in fluxo_rio):
-    fluxo_rio = direcoes
-    fluxo_rio.remove(direcao_rio_final)
 
 if direcao_rio_inicial == 'direita':
-    y = random.randrange(0, ALTURA, 100)
+    y = random.randrange(0, ALTURA_MAPA, 100)
+    if y > (ALTURA_MAPA / 2):
+        direcao_rio_final = 'cima'
+    else:
+        direcao_rio_final = 'baixo'
     mapa[(0, y)] = mapa[(50, y)] = mapa[(0, y + 50)] = mapa[(50, y + 50)] = 14
     x_vez = 0
     y_vez = y
 elif direcao_rio_inicial == 'esquerda':
-    y = random.randrange(0, ALTURA, 100)
-    ultimo = LARGURA
+    y = random.randrange(0, ALTURA_MAPA, 100)
+    if y > (ALTURA_MAPA / 2):
+        direcao_rio_final = 'cima'
+    else:
+        direcao_rio_final = 'baixo'
+    ultimo = LARGURA_MAPA
     while ultimo % 50 != 0:
         ultimo -= 1
     ultimo -= 50
@@ -219,30 +158,36 @@ elif direcao_rio_inicial == 'esquerda':
     x_vez = ultimo
     y_vez = y
 elif direcao_rio_inicial == 'baixo':
-    x = random.randrange(0, LARGURA, 100)
+    x = random.randrange(0, LARGURA_MAPA, 100)
+    if x > (LARGURA_MAPA / 2):
+        direcao_rio_final = 'esquerda'
+    else:
+        direcao_rio_final = 'direita'
     mapa[(x, 0)] = mapa[(x, 50)] = mapa[(x + 50, 0)] = mapa[(x + 50, 50)] = 14
     x_vez = x
     y_vez = 0
 elif direcao_rio_inicial == 'cima':
-    x = random.randrange(0, LARGURA, 100)
-    ultimo = ALTURA
+    x = random.randrange(0, LARGURA_MAPA, 100)
+    if x > (LARGURA_MAPA / 2):
+        direcao_rio_final = 'esquerda'
+    else:
+        direcao_rio_final = 'direita'
+    ultimo = ALTURA_MAPA
     while ultimo % 50 != 0:
         ultimo -= 1
     ultimo -= 50
     mapa[(x, ultimo)] = mapa[(x, ultimo + 50)] = mapa[(x + 50, ultimo)] = mapa[(x + 50, ultimo + 50)] = 14
     x_vez = x
     y_vez = ultimo
+fluxo_rio = [direcao_rio_inicial, direcao_rio_final]
 Rio(x_vez, y_vez)
-contorno_rio(mapa, x_vez, y_vez)
+functions.contorno_rio(mapa, x_vez, y_vez)
 
 while not foz:
-    if direcao_rio == direcao_rio_inicial:
-        direcao_rio = random.choice(fluxo_rio)
-    else:
-        direcao_rio = direcao_rio_inicial
+    direcao_rio = random.choice(fluxo_rio)
     if direcao_rio == 'direita':
         x_vez += 100
-        if x_vez + 150 > LARGURA:
+        if x_vez + 150 > LARGURA_MAPA:
                 foz = True
         mapa[(x_vez, y_vez)] = mapa[(x_vez, y_vez + 50)] = mapa[(x_vez + 50, y_vez)] = mapa[(x_vez + 50, y_vez + 50)] = 14
     elif direcao_rio == 'esquerda':
@@ -252,7 +197,7 @@ while not foz:
         mapa[(x_vez, y_vez)] = mapa[(x_vez, y_vez + 50)] = mapa[(x_vez + 50, y_vez)] = mapa[(x_vez + 50, y_vez + 50)] = 14
     elif direcao_rio == 'baixo':
         y_vez += 100
-        if y_vez + 100 > ALTURA:
+        if y_vez + 100 > ALTURA_MAPA:
             foz = True
         mapa[(x_vez, y_vez)] = mapa[(x_vez, y_vez + 50)] = mapa[(x_vez + 50, y_vez)] = mapa[(x_vez + 50, y_vez + 50)] = 14
     elif direcao_rio == 'cima':
@@ -260,11 +205,12 @@ while not foz:
         if y_vez <= 0:
             foz = True
         mapa[(x_vez, y_vez)] = mapa[(x_vez, y_vez + 50)] = mapa[(x_vez + 50, y_vez)] = mapa[(x_vez + 50, y_vez + 50)] = 14
-    contorno_rio(mapa, x_vez, y_vez)
+    functions.contorno_rio(mapa, x_vez, y_vez)
     Rio(x_vez, y_vez)
 
-for x in range(0, LARGURA, 50):
-    for y in range(0, ALTURA, 50):
+
+for x in range(0, LARGURA_MAPA, 50):
+    for y in range(0, ALTURA_MAPA, 50):
         if mapa[(x, y)] == 1:
             num = random.randint(1, 30)
             if num == 1:
@@ -292,32 +238,44 @@ for (x, y) in mapa.keys():
             mapa[(x, y)] = 27
             mapa[(x - 50, y - 50)] = 30
 #cria o jogador 
-retangulo = Retangulo(velocidade_padrao, stamina_padrao, Rio.rios, cooldown_habilidade_padrao, vida_padrao)
+mago = Mago(velocidade_padrao, stamina_padrao, Rio.rios, cooldown_habilidade_padrao, vida_padrao)
 
 #cria as paredes
-num_arvores = random.randint(4,8)
+num_arvores = random.randint(10, 30)
 for j in range(num_arvores):
-    locals()['parede' + str(j)] = Parede(0.05, retangulo, Rio.rios)
+    locals()['parede' + str(j)] = Parede(0.05, mago, Rio.rios, LARGURA_MAPA, ALTURA_MAPA)
 
+#cria a ponte
+ponte = False
+while not ponte:
+    bloco = random.choice(Rio.rios)
+    if (bloco.x - 100, bloco.y) in mapa.keys() and (bloco.x + 100, bloco.y) in mapa.keys():
+        if mapa[(bloco.x - 100, bloco.y)] != 14 and mapa[(bloco.x + 100, bloco.y)] != 14:
+            bloco.construir_ponte(mapa)
+            ponte = True
+            
 # Spawnar os animais, foi escolhido 3, mas pode ser arbitrário
-pontos_inimigos = {}
+pontos_animais = {}
 for animal in infos.keys():
-    pontos_inimigos[animal] = 0
+    pontos_animais[animal] = 0
 for i in range(3):
     nome = random.choice([k for k in infos.keys()])
-    locals()['inimigo' + str(i)] = Inimigos(infos, nome, retangulo)
-    locals()['inimigo' + str(i)].spawnar(retangulo, Parede.paredes, Rio.rios, Lobo.lobos_vivos)
+    locals()['animal' + str(i)] = Animais(infos, nome, mago)
+    locals()['animal' + str(i)].spawnar(mago, Parede.paredes, Rio.rios, Dragao.dragoes_vivos, offset_x, offset_y)
 
-
-def draw_poder():
-    for poder in cargas:
-        poder.draw(janela)
+#Poderes
+poderes = {}
+num_frames_poder1 = 15
+num_frames_poder2 = 8
+tipos_poder = 2
+for k in range(tipos_poder):
+    frames_poder = []
+    for i in range(num_frames_poder2):
+        frames_poder.append(pg.image.load(f'assets/projetil{k + 1}_{i}.png'))
+    poderes[f'poder{k + 1}'] = frames_poder
 
 cargas = []
-
-vida_lobo = 450
-lobo = Lobo(velocidade_padrao, "Lobo", retangulo, vida_lobo)
-lobo.spawnar(retangulo, Parede.paredes, Rio.rios)
+vida_dragao = 360
 
 # Loop principal
 running = True
@@ -326,140 +284,154 @@ while running:
     # A movimentação é em função do tempo, se rodar muito ciclos ele para e volta dps
     variacao_tempo = clock.tick(30)
 
-    width = pg.display.get_surface().get_width()
-    height = pg.display.get_surface().get_height()
+    largura_camera = pg.display.get_surface().get_width()
+    offset_x = mago.x - (largura_camera / 2)
+    if offset_x < 0:
+        offset_x = 0
+    elif offset_x + (largura_camera) > LARGURA_MAPA:
+        offset_x = LARGURA_MAPA - largura_camera
+    offset_y = mago.y - (altura_camera / 2)
+    if offset_y < 0:
+        offset_y = 0
+    elif offset_y + (altura_camera) > ALTURA_MAPA:
+        offset_y = ALTURA_MAPA - altura_camera
+    altura_camera = pg.display.get_surface().get_height()
 
     for evento in pg.event.get():
         if evento.type == pg.QUIT:
             running = False
-
 
     if ultima_seta['SPACE'] == 0:
         cooldown = False
         cooldown_sprite = False
     else:
         cooldown_sprite = True
-
+    
     if not cooldown:
         #checando colisão com animais
-        for animal in Inimigos.inimigos_vivos:
+        for animal in Animais.animais_vivos:
             for poder in cargas:
-                if poder.x < 1280 and poder.x > -40:
+                if offset_x - 40 <= poder.x < largura_camera + offset_x:
                     poder.x += poder.vel_x
                 else:
                     cargas.pop(cargas.index(poder))
                     cooldown = True
-                if poder.y < 720 and poder.y > -60:
+                if offset_y - 60 <= poder.y < altura_camera + offset_y:
                     poder.y += poder.vel_y
                 else:
                     cargas.pop(cargas.index(poder))
                     cooldown = True
-                if colisao_amigavel(poder, animal):
-                    colisao(poder, animal)
+                if functions.colisao_amigavel(poder, animal):
+                    functions.colisao(poder, animal, pontos_animais)
                     cargas.pop(cargas.index(poder))
                     cooldown = True
 
-        #checando colisão com animais
-        for lobo in Lobo.lobos_vivos:
+        #checando colisão com dragao
+        for dragao in Dragao.dragoes_vivos:
             for poder in cargas:
-                if poder.x < 1280 and poder.x > -40:
+                if offset_x - 40 <= poder.x < largura_camera + offset_x:
                     poder.x += poder.vel_x
                 else:
                     cargas.pop(cargas.index(poder))
                     cooldown = True
-                if poder.y < 720 and poder.y > -60:
+                if offset_y - 60 <= poder.y < altura_camera + offset_y:
                     poder.y += poder.vel_y
                 else:
                     cargas.pop(cargas.index(poder))
                     cooldown = True
-                if colisao_amigavel(poder, lobo):
-                    colisao_lobo(poder, lobo)
+                if functions.colisao_amigavel(poder, dragao):
+                    vida_dragao -= 90
+                    vida_dragao = functions.colisao_dragao(poder, dragao, vida_dragao)
                     cargas.pop(cargas.index(poder))
                     cooldown = True
 
         #checando colisão com paredes        
         for parede in Parede.paredes:
             for poder in cargas:
-                if poder.x < 1280 and poder.x > -40:
+                if offset_x - 40 <= poder.x < largura_camera + offset_x:
                     poder.x += poder.vel_x
                 else:
                     cargas.pop(cargas.index(poder))
                     cooldown = True
-                if poder.y < 720 and poder.y > -60:
+                if offset_y - 60 <= poder.y < altura_camera + offset_y:
                     poder.y += poder.vel_y
                 else:
                     cargas.pop(cargas.index(poder))
                     cooldown = True
-                if colisao_amigavel(poder, parede):
+                if functions.colisao_amigavel(poder, parede):
                     cargas.pop(cargas.index(poder))
                     cooldown = True
+
+    if len(Dragao.dragoes_vivos) < 1:
+        dragao = Dragao(velocidade_padrao, "Dragao", mago, vida_dragao, frames_dragao)
+        dragao.spawnar(mago, Parede.paredes, Rio.rios)
 
     keys = pg.key.get_pressed()
 
     if keys[pg.K_F11] and not tela_cheia:
-        janela = pg.display.set_mode((LARGURA, ALTURA), pg.FULLSCREEN)
+        janela = pg.display.set_mode((largura_camera, altura_camera), pg.FULLSCREEN)
         tela_cheia = True
     if keys[pg.K_ESCAPE] and tela_cheia:
-        janela = pg.display.set_mode((LARGURA, ALTURA))
+        janela = pg.display.set_mode((largura_camera, altura_camera))
         tela_cheia = False
 
-    for x in range(0, width, 50):
-        for y in range(0, height, 50):
-            janela.blit(tilemap[mapa[(x, y)] - 1], (x, y))
+    for x in range(0, LARGURA_MAPA, 50):
+        for y in range(0, ALTURA_MAPA, 50):
+            janela.blit(tilemap[mapa[(x, y)] - 1], (x - offset_x, y - offset_y))
     
-    for x in range(0, width, 50):
-        for y in range(0, height, 50):
+    for x in range(0, LARGURA_MAPA, 50):
+        for y in range(0, ALTURA_MAPA, 50):
             if (x, y) in enfeites.keys():
-                janela.blit(desenho_enfeites[enfeites[(x, y)][0] - 1], enfeites[(x, y)][1])
+                janela.blit(desenho_enfeites[enfeites[(x, y)][0] - 1], (enfeites[(x, y)][1][0] - offset_x, enfeites[(x, y)][1][1] - offset_y))
     
 
     for j in range(num_arvores):
-        locals()['parede' + str(j)].desenhar_tronco()
+        locals()['parede' + str(j)].desenhar_tronco(offset_x, offset_y)
 
     if not cooldown:
-        draw_poder()
+        functions.draw_poder(cargas, janela, offset_x, offset_y)
 
     # há uma pequena chance de surgir um animal cada vez que o loop roda
     chance = random.randint(1,400)
-    total_vivos = len(Inimigos.inimigos_vivos)
+    total_vivos = len(Animais.animais_vivos)
     nenhum = True
-    for inimigo in Inimigos.inimigos_vivos:
-        if not (inimigo.x < -1 * inimigo.largura or inimigo.x >= width or inimigo.y < -1 * inimigo.altura or inimigo.y > height):
+    for animal in Animais.animais_vivos:
+        if not (animal.x < offset_x -  animal.largura or animal.x >= offset_x + largura_camera or animal.y < offset_y - animal.altura or animal.y > offset_y + altura_camera):
             nenhum = False
     if nenhum or total_vivos == 0 or (chance == 1 and total_vivos <= 20): 
         nome = random.choice([j for j in infos.keys()])
-        locals()['inimigo' + str(i)] = Inimigos(infos, nome, retangulo)
-        locals()['inimigo' + str(i)].spawnar(retangulo, Parede.paredes, Rio.rios, Lobo.lobos_vivos)
-    for inimigo in Inimigos.inimigos_vivos:
-        inimigo.desenhar_inimigo(janela)
+        locals()['animal' + str(i)] = Animais(infos, nome, mago)
+        locals()['animal' + str(i)].spawnar(mago, Parede.paredes, Rio.rios, Dragao.dragoes_vivos, offset_x, offset_y)
+    for animal in Animais.animais_vivos:
+        animal.desenhar_animal(janela, offset_x, offset_y)
     
-    retangulo.desenhar_mago(janela) #desenhando o mago
-
-    for lobo in Lobo.lobos_vivos: #desenhando o lobo
-        lobo.desenhar_lobo(janela)
+    mago.desenhar_mago(janela, offset_x, offset_y) #desenhando o mago
 
     for j in range(num_arvores):
-        locals()['parede' + str(j)].desenhar_folhas()
+        locals()['parede' + str(j)].desenhar_folhas(offset_x, offset_y)
 
-    ratio_stamina = retangulo.stamina / 1000
-    ratio_habilidade = retangulo.cooldown_habilidade / 270
-    ratio_vida = retangulo.vida / 1000
+    for dragao in Dragao.dragoes_vivos: #desenhando o dragao
+        dragao.desenhar_dragao(janela, offset_x, offset_y)
+        
+    ratio_stamina = mago.stamina / 1000
+    ratio_habilidade = mago.cooldown_habilidade / 270
+    ratio_vida = mago.vida / 1000
 
     #lugar de informacões
-    janela.blit(hud, (-200, height - 60))
+    janela.blit(hud, (-200, altura_camera - 60))
 
 
-    #Moldura barra de vida
+    #Moldura barras
     largura_barra = 200
     largura_barra_skill = 64
     altura_barra = 15
     altura_barra_habilidade = 48
     raio_borda = 4
     espessura = 2
-    x_barras = width / (LARGURA/10)
-    y_barra_stamina = height / (ALTURA/(ALTURA - 28))
-    y_barra_vida = height / (ALTURA/(ALTURA - 44))
-    x_barra_habilidade = width / (LARGURA / 270)
+    x_barras = largura_camera / (largura_camera/10)
+    y_barra_stamina = altura_camera / (altura_camera/(altura_camera - 28))
+    y_barra_vida = altura_camera / (altura_camera/(altura_camera - 44))
+    x_barra_habilidade = largura_camera / (largura_camera / 270)
     y_barra_habilidade = y_barra_vida - 9
     
     #Fundo barra de stamina
@@ -483,28 +455,34 @@ while running:
     else:
         barra_branca = pg.transform.smoothscale(pg.image.load('assets/barra_branca.png'), (64 * ratio_habilidade, 48))
         barra_branca.set_alpha(100)
-        janela.blit(hud_skill_cooldown, (x_barra_habilidade, y_barra_habilidade))
+        janela.blit(hud_skill_cooldown, (x_barra_habilidade, y_barra_habilidade - 1))
         janela.blit(barra_branca, (x_barra_habilidade, y_barra_habilidade))
     pg.draw.rect(janela, MARROM_ESCURO, (x_barra_habilidade, y_barra_habilidade, largura_barra_skill, altura_barra_habilidade), espessura, border_radius=raio_borda)
-    
 
-    #movimentação dos inimigos
-    for inimigo in Inimigos.inimigos_vivos:
-        inimigo.move(retangulo, variacao_tempo, Parede.paredes, Rio.rios, Lobo.lobos_vivos, velocidade_devagar, velocidade_rapida)
+    #Vida dragao
+    barra_vida_dragao = pg.transform.smoothscale(pg.image.load('assets/vida_dragao.png'), (vida_dragao , 18))
+    fundo_vida_dragao = pg.transform.smoothscale(pg.image.load('assets/vida_dragao_fundo.png'), (360, 20))
+    for dragao in Dragao.dragoes_vivos:
+        janela.blit(barra_vida_dragao, (dragao.x - 100 - offset_x, dragao.y - 45 - offset_y))
+        janela.blit(fundo_vida_dragao, (dragao.x - 100 - offset_x, dragao.y - 45 - offset_y))
+
+    #movimentação dos animais
+    for animal in Animais.animais_vivos:
+        animal.move(mago, variacao_tempo, Parede.paredes, Rio.rios, Dragao.dragoes_vivos, velocidade_devagar, velocidade_rapida)
     # Colisão com as bordas
-    retangulo = borda(retangulo, width, height)
-    for inimigo in Inimigos.inimigos_vivos: 
-        inimigo = colisao(retangulo, inimigo)
+    mago = functions.borda(mago, LARGURA_MAPA, ALTURA_MAPA)
+    for animal in Animais.animais_vivos: 
+        animal = functions.colisao(mago, animal, pontos_animais)
 
-    # Movimentação do lobo
-    for lobo in Lobo.lobos_vivos:
-        lobo.move(retangulo, variacao_tempo, Parede.paredes, Rio.rios, velocidade_devagar, velocidade_rapida)
+    # Movimentação do dragao
+    for dragao in Dragao.dragoes_vivos:
+        dragao.move(mago, variacao_tempo, Parede.paredes, Rio.rios, velocidade_devagar, velocidade_rapida)
 
-    # Colisão do lobo com o mago
-    for lobo in Lobo.lobos_vivos:  
-        lobo = dano_lobo(retangulo, lobo)
+    # Colisão do dragao com o mago
+    for dragao in Dragao.dragoes_vivos:  
+        dragao = functions.dano_dragao(mago, dragao)
 
-    retangulo.move(keys, variacao_tempo, setas, ultima_seta, Parede.paredes, Rio.rios)
+    mago.move(keys, variacao_tempo, setas, ultima_seta, Parede.paredes, Rio.rios)
 
 
     #criação do timer
@@ -513,20 +491,20 @@ while running:
     tempo_restante = max(0, duracao_timer - tempo_passado) #evite com que o timer dê errado quando acabe
     minutos, segundos = divmod(int(tempo_restante), 60) #faz a divisão correta entre minutos e segundos
     texto_timer = fonte_tempo.render(f'Tempo: {minutos:02d}:{segundos:02d}', True, BRANCO) #texto, situação de aparecimento, cor
-    janela.blit(texto_timer, (LARGURA - texto_timer.get_width() - 15, ALTURA - 50))
-    x_inicial = LARGURA - texto_timer.get_width() - 150
+    janela.blit(texto_timer, (largura_camera - texto_timer.get_width() - 15, altura_camera - 50))
+    x_inicial = largura_camera - texto_timer.get_width() - 150
 
     #Blitando os sprites do animais no contador
-    janela.blit(animal1_baixo[0], (x_inicial - 200, ALTURA - 50))
-    janela.blit(animal2_baixo[0], (x_inicial - 100, ALTURA - 50))
-    janela.blit(animal3[0], (x_inicial, ALTURA - 50))
+    janela.blit(animal1_idle, (x_inicial - 200, altura_camera - 50))
+    janela.blit(animal2_idle, (x_inicial - 100, altura_camera - 50))
+    janela.blit(animal3_idle, (x_inicial, altura_camera - 50))
 
-    for animal in reversed(pontos_inimigos.keys()): #contador dos animais
-        if pontos_inimigos[animal] < 10:
-            contador = fonte_contador.render(f'x0{pontos_inimigos[animal]}', True, BRANCO)
+    for animal in reversed(pontos_animais.keys()): #contador dos animais
+        if pontos_animais[animal] < 10:
+            contador = fonte_contador.render(f'x0{pontos_animais[animal]}', True, BRANCO)
         else:
-            contador = fonte_contador.render(f'x{pontos_inimigos[animal]}', True, BRANCO) 
-        janela.blit(contador, (x_inicial + 27, ALTURA - 57))
+            contador = fonte_contador.render(f'x{pontos_animais[animal]}', True, BRANCO) 
+        janela.blit(contador, (x_inicial + 27, altura_camera - 57))
         x_inicial -= 100
     
     if not cooldown:
@@ -543,10 +521,12 @@ while running:
             else:
                 facing_y = 1
                 facing_x = 0
-
-
+            
             if len(cargas) < 1:
-                cargas.append(Projectile(round(retangulo.x + retangulo.largura //2), round(retangulo.y + retangulo.altura//2), 4, facing_x, facing_y))
+                if ultima_seta['Q'] != 0 or ultima_seta['Q'] == 0 and ultima_seta['E'] == 0:
+                    cargas.append(Projectile(round(mago.x + mago.largura //2), round(mago.y + mago.altura//2), 4, facing_x, facing_y, poderes['poder1']))
+                if ultima_seta['E'] != 0:
+                    cargas.append(Projectile(round(mago.x + mago.largura //2), round(mago.y + mago.altura//2), 4, facing_x, facing_y, poderes['poder2']))
 
     janela.blit(janela, (0,0)) #atualiza o timer e as barras corretamente
 
