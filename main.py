@@ -221,19 +221,23 @@ for i in range(3):
 #Poderes
 poderes = {}
 num_frames_poder = [15, 8]
+num_frames_fogo = 5
 tipos_poder = 2
 for k in range(tipos_poder):
     frames_poder = []
     for i in range(num_frames_poder[k]):
         frames_poder.append(pg.image.load(f'assets/projetil{k + 1}_{i}.png'))
     poderes[f'poder{k + 1}'] = frames_poder
+frames_fogo = []
+for i in range(num_frames_fogo):
+    frames_fogo.append(pg.image.load(f'assets/fogo{i + 1}.png'))
 cooldown_poder = 0
 tempo_poder = False
 cargas_mago = []
 cargas_dragao = []
 
 vida_dragao = 450
-dragao = Dragao(velocidade_padrao, "Dragao", mago, vida_dragao, frames_dragao, poderes['poder1'])
+dragao = Dragao(velocidade_padrao, "Dragao", mago, vida_dragao, frames_dragao, frames_fogo)
 dragao.spawnar(mago, Parede.paredes, Rio.rios)
 
 # Loop principal

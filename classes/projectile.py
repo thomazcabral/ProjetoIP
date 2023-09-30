@@ -27,7 +27,7 @@ class Projectile(object):
             self.y -= 30
 
     def draw(self,janela, offset_x, offset_y):
-        projetil_padrao = pg.transform.smoothscale(self.frames[self.estagio], (70,40))
+        projetil_padrao = pg.transform.scale(self.frames[self.estagio], (70,40))
         projetil_left = pg.transform.flip(projetil_padrao, True, False) #espelha a imagem
         projetil_up = pg.transform.rotate(projetil_padrao, 90) #rotaciona a imagem
         projetil_down = pg.transform.rotate(projetil_padrao, 270) #rotaciona a imagem
