@@ -6,6 +6,7 @@ from .functions import *
 class Animais(pg.sprite.Sprite):
     # Responsável por cada animal vivo
     animais_vivos = []
+    animais_mortos = []
 
     def __init__(self, infos, nome, instancia_mago):
         super().__init__()

@@ -42,5 +42,5 @@ class Projectile(object):
             janela.blit(projetil_down, (self.x - offset_x, self.y - offset_y))
 
         self.estagio += 1
-        if self.estagio == 15:
+        if self.estagio == len(self.frames):
             self.estagio = 0

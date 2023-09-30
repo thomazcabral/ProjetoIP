@@ -204,7 +204,7 @@ while not ponte:
     if (bloco.x - 100, bloco.y) in mapa.keys() and (bloco.x + 100, bloco.y) in mapa.keys():
         ponte = True
         for rio in Rio.rios:
-            if (bloco.x - 100, bloco.y) == (rio.x, rio.y  ) or (bloco.x + 100, bloco.y) == (rio.x, rio.y):
+            if (bloco.x - 100, bloco.y) == (rio.x, rio.y  ) or (bloco.x + 100, bloco.y) == (rio.x, rio.y):  
                 ponte = False
         if ponte:
             bloco.construir_ponte(mapa)
@@ -220,12 +220,12 @@ for i in range(3):
 
 #Poderes
 poderes = {}
-num_frames_poder = 15
+num_frames_poder = [15, 8]
 tipos_poder = 2
 for k in range(tipos_poder):
     frames_poder = []
-    for i in range(num_frames_poder):
-        frames_poder.append(pg.image.load(f'assets/projetil{1}_{i}.png'))
+    for i in range(num_frames_poder[k]):
+        frames_poder.append(pg.image.load(f'assets/projetil{k + 1}_{i}.png'))
     poderes[f'poder{k + 1}'] = frames_poder
 cooldown_poder = 0
 tempo_poder = False
@@ -315,7 +315,6 @@ while running:
 
 
     keys = pg.key.get_pressed()
-
     if keys[pg.K_F11] and not tela_cheia:
         janela = pg.display.set_mode((largura_camera, altura_camera), pg.FULLSCREEN)
         tela_cheia = True
@@ -340,21 +339,6 @@ while running:
         functions.draw_poder(cargas_mago, janela, offset_x, offset_y)
     functions.draw_poder(cargas_dragao, janela, offset_x, offset_y)
 
-    # há uma pequena chance de surgir um animal cada vez que o loop roda
-    chance = random.randint(1,400)
-    total_vivos = len(Animais.animais_vivos)
-    nenhum = True
-    for animal in Animais.animais_vivos:
-        if not (animal.x < offset_x -  animal.largura or animal.x >= offset_x + largura_camera or animal.y < offset_y - animal.altura or animal.y > offset_y + altura_camera):
-            nenhum = False
-    if nenhum or total_vivos == 0 or (chance == 1 and total_vivos <= 20): 
-        nome = random.choice([j for j in infos.keys()])
-        locals()['animal' + str(i)] = Animais(infos, nome, mago)
-        locals()['animal' + str(i)].spawnar(mago, Parede.paredes, Rio.rios, Dragao.dragoes_vivos, offset_x, offset_y)
-    for animal in Animais.animais_vivos:
-        animal.desenhar_animal(janela, offset_x, offset_y)
-    
-
     #adicionar coletavel.x/y
     chance = random.randint(1, 150) #mudar o 200
     total_poderes = len(Coletaveis.coletaveis_ativos)
@@ -370,6 +354,22 @@ while running:
     for coletavel in Coletaveis.coletaveis_ativos:
         coletavel.desenhar_coletavel(janela, offset_x, offset_y)
     
+
+    # há uma pequena chance de surgir um animal cada vez que o loop roda
+    chance = random.randint(1,400)
+    total_vivos = len(Animais.animais_vivos)
+    nenhum = True
+    for animal in Animais.animais_vivos:
+        if not (animal.x < offset_x -  animal.largura or animal.x >= offset_x + largura_camera or animal.y < offset_y - animal.altura or animal.y > offset_y + altura_camera):
+            nenhum = False
+    if nenhum or total_vivos == 0 or (chance == 1 and total_vivos <= 20): 
+        nome = random.choice([j for j in infos.keys()])
+        locals()['animal' + str(i)] = Animais(infos, nome, mago)
+        locals()['animal' + str(i)].spawnar(mago, Parede.paredes, Rio.rios, Dragao.dragoes_vivos, offset_x, offset_y)
+    for animal in Animais.animais_vivos:
+        animal.desenhar_animal(janela, offset_x, offset_y)
+    
+
     mago.desenhar_mago(janela, offset_x, offset_y) #desenhando o mago
 
     for j in range(num_arvores):
