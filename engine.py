@@ -219,8 +219,9 @@ class Engine:
         self.dragon['Dragao']['referencia']['direita'] = direita_dragao
         self.dragon['Dragao']['referencia']['esquerda'] = esquerda_dragao
 
-        self.barra_vida_dragao = pg.transform.smoothscale(pg.image.load('assets/vida_dragao.png'), (self.vida_dragao , 18))
-        self.fundo_vida_dragao = pg.transform.smoothscale(pg.image.load('assets/vida_dragao_fundo.png'), (360, 20))
+        self.barra_vida_dragao = pg.image.load('assets/vida_dragao.png')
+        self.fundo_barra_dragao = pg.image.load('assets/vida_dragao_fundo.png')
+
 
         for i in range(self.num_frames_fogo):
             self.frames_fogo.append(pg.image.load(f'assets/fogo{i + 1}.png'))
@@ -464,7 +465,7 @@ class Engine:
             dragao.spawnar(self.mago, Parede.paredes, Rio.rios)
 
     def render_collectables(self):
-        chance = random.randint(1, 150) #mudar o 200
+        chance = random.randint(1, 10) #mudar o 200
         total_poderes = len(Coletaveis.coletaveis_ativos)
         for coletavel in Coletaveis.coletaveis_ativos:
             tempo_aumentado = functions.colisao_coleta(self.mago, coletavel)
@@ -474,7 +475,10 @@ class Engine:
             nome = self.poderes_chao[f"Coletavel {random.randint(1,4)}"]
             coletavel = Coletaveis(nome)
             coletavel.spawnar(self.mago, Parede.paredes, Rio.rios, Dragao.dragoes_vivos, Animais.animais_vivos, self.offset_x, self.offset_y)
-    
+         # Renderizar coletáveis
+        for coletavel in Coletaveis.coletaveis_ativos:
+            coletavel.desenhar_coletavel(self.janela, self.offset_x, self.offset_y)
+
     def move_animal(self, variacao_tempo):
         for animal in Animais.animais_vivos:
             animal.move(self.mago, variacao_tempo, Parede.paredes, Rio.rios, Dragao.dragoes_vivos, self.speed_config["velocidade_devagar"], self.speed_config["velocidade_rapida"])
@@ -512,18 +516,16 @@ class Engine:
         if not self.cooldown:
             functions.draw_poder(self.cargas, self.janela, self.offset_x, self.offset_y)
         functions.draw_poder(self.cargas_dragao, self.janela, self.offset_x, self.offset_y)
-        
-        # Renderizar coletáveis
-        for coletavel in Coletaveis.coletaveis_ativos:
-            coletavel.desenhar_coletavel(self.janela, self.offset_x, self.offset_y)
     
     def render_dragon(self):
         # Renderizar dragão e sua vida
         for dragao in Dragao.dragoes_vivos: #desenhando o dragao
             dragao.desenhar_dragao(janela, self.offset_x, self.offset_y)
-        for dragao in Dragao.dragoes_vivos:
-            self.janela.blit(self.barra_vida_dragao, (dragao.x - 100 - self.offset_x, dragao.y - 45 - self.offset_y))
-            self.janela.blit(self.fundo_vida_dragao, (dragao.x - 100 - self.offset_x, dragao.y - 45 - self.offset_y))
+        for dragao in Dragao.dragoes_vivos: 
+            barra_atual = pg.transform.smoothscale(self.barra_vida_dragao, (dragao.vida , 18))
+            fundo_atual = pg.transform.smoothscale(self.fundo_barra_dragao, (360, 20))
+            self.janela.blit(barra_atual, (dragao.x - 100 - self.offset_x, dragao.y - 45 - self.offset_y))
+            self.janela.blit(fundo_atual, (dragao.x - 100 - self.offset_x, dragao.y - 45 - self.offset_y))
 
     def render_projectile(self, keys, ultima_seta):
         if self.mago.poder:
