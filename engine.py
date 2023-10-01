@@ -166,11 +166,7 @@ class Engine:
                 self.render_projectile(keys, ultima_seta)
                 self.render_mage()
                 self.render_leaves()
-<<<<<<< HEAD
-=======
-                self.render_collectables()
                 self.render_dragon()
->>>>>>> 6df2b241eed17984af6b593bfd2cd1e966bc0235
                 self.render_hud()
                 
 
