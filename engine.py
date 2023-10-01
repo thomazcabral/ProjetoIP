@@ -3,7 +3,7 @@ import sys
 import time
 import random
 from classes.utilidades import *
-from classes import Animais, Parede, Mago, Rio, Projectile, Dragao, functions, Menu, Coletaveis
+from classes import Animais, Parede, Mago, Rio, Projectile, Dragao, functions, Menu, Coletaveis, PauseMenu
 
 class Engine:
     def __init__(self, config: dict) -> None:
@@ -100,6 +100,9 @@ class Engine:
 
         self.duracao_timer = 60 
         self.tempo_restante = 60
+        
+        self.paused = False # Pausar
+        self.pause_menu = PauseMenu(self, janela)
 
     def run(self) -> None:
         
@@ -129,7 +132,7 @@ class Engine:
         self.spawn_animals()
         self.create_bridges()
 
-        while self.running:
+        while self.running:         
             if not self.game_started:
                 # Mostrar janela do menu
                 self.menu.show_menu(self.janela)
@@ -146,39 +149,62 @@ class Engine:
                     largura_camera=self.camera_config["largura_camera"],
                     altura_camera=self.camera_config["altura_camera"]
                 )
-                for evento in pg.event.get():
-                    if evento.type == pg.QUIT:
+                
+                for event in pg.event.get():
+                    if event.type == pg.QUIT:
                         self.running = False
-                if ultima_seta['SPACE'] == 0:
-                    self.cooldown = False
-                    self.cooldown_sprite = False
+                    elif event.type == pg.KEYDOWN:
+                        if event.key == pg.K_ESCAPE:
+                            if not self.paused:
+                                self.paused = True
+                                self.pause_menu.paused = True
+                                self.pause_menu.toggle()  # Mostrar menu de pausa
+                            else:
+                                self.paused = False
+                                self.pause_menu.paused = False
+                                self.pause_menu.toggle()  # Esconder menu de pausa
+                                
+                    result = self.pause_menu.handle_event(event)
+                    if result:
+                        self.pause_menu.handle_action(result)
+                        
+                if not self.paused:
+                    keys = pg.key.get_pressed()
+                    if ultima_seta['SPACE'] == 0:
+                        self.cooldown = False
+                        self.cooldown_sprite = False
+                    else:
+                        self.cooldown_sprite = True
+                    
+                    if not self.cooldown:
+                        self.check_power_colision()
+                    self.check_dragon_fire_colision()
+                    self.try_spawning_dragon()
+
+                    keys = pg.key.get_pressed()
+
+                    self.render_map()
+                    self.render_trunk()
+                    self.render_collectables()
+                    self.render_entities()
+                    self.render_projectile(keys, ultima_seta)
+                    self.render_mage()
+                    self.render_leaves()
+                    self.render_dragon()
+                    self.render_hud()
+                    
+
+                    self.mago.move(keys, variacao_tempo, setas, ultima_seta, Parede.paredes, Rio.rios)
+                    self.move_animal(variacao_tempo)
+                    self.move_dragon(variacao_tempo)
+        
+                    self.janela.blit(self.janela, (0,0)) #atualiza o timer e as barras corretamente
+                    pg.display.update()
+                    
                 else:
-                    self.cooldown_sprite = True
-                
-                if not self.cooldown:
-                    self.check_power_colision()
-                self.check_dragon_fire_colision()
-                self.try_spawning_dragon()
-
-                keys = pg.key.get_pressed()
-
-                self.render_map()
-                self.render_trunk()
-                self.render_collectables()
-                self.render_entities()
-                self.render_projectile(keys, ultima_seta)
-                self.render_mage()
-                self.render_leaves()
-                self.render_dragon()
-                self.render_hud()
-                
-
-                self.mago.move(keys, variacao_tempo, setas, ultima_seta, Parede.paredes, Rio.rios)
-                self.move_animal(variacao_tempo)
-                self.move_dragon(variacao_tempo)
-    
-                self.janela.blit(self.janela, (0,0)) #atualiza o timer e as barras corretamente
-                pg.display.update()
+                    # Jogo pausado
+                    self.pause_menu.draw()
+                    pg.display.update()
             
     
     def load_animals(self) -> None:
@@ -711,7 +737,7 @@ class Engine:
             else:
                 contador = self.fonte_contador.render(f'x{self.pontos_animais[animal]}', True, self.color_config["BRANCO"]) 
             self.janela.blit(contador, (x_inicial + 27, altura_camera - 57))
-            x_inicial -= 100
+            x_inicial -= 100          
         
         
         
