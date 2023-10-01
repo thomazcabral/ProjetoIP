@@ -29,8 +29,7 @@ class Animais(pg.sprite.Sprite):
         self.mago = instancia_mago
         self.estagio = 0
         self.encurralado = False
-        self.x = 0
-        self.y = 0
+
         Animais.animais_vivos.append(self)
 
     def spawnar(self, mago, paredes, rios, dragao, offset_x, offset_y):
@@ -46,8 +45,12 @@ class Animais(pg.sprite.Sprite):
                 self.y = valory	
                 escolher = True
                 for animal in Animais.animais_vivos:
-                    if animal != self and ((animal.x + (animal.largura / 2) - valorx) ** 2 + (animal.y + (animal.altura / 2) - valory)** 2) ** (1/2) < animal.raio:
-                        escolher = False
+                    try:
+                        if animal != self and ((animal.x + (animal.largura / 2) - valorx) ** 2 + (animal.y + (animal.altura / 2) - valory)** 2) ** (1/2) < animal.raio:
+                            escolher = False
+                    except:
+                        continue
+
                 bloqueio = []
                 for k in paredes:
                     bloqueio.append(k)

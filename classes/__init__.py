@@ -5,3 +5,4 @@ from .rio import Rio
 from .projectile import Projectile
 from .dragao import Dragao
 from .menu import Menu
+from .coletaveis import Coletaveis

@@ -30,7 +30,7 @@ class Mago:
         self.cansaco = 0
         self.img = pg.image.load('assets/mago_down.png')
         self.raio = 300
-
+        self.poder = False
     def move(self, keys, variacao_tempo, setas, ultima_seta, paredes, rios):
         #método usado pra conferir qual tecla foi usada mais recentemente
         if keys[pg.K_RIGHT] or keys[pg.K_d]:
@@ -66,13 +66,6 @@ class Mago:
         else:
             setas['DOWN'] = 0
         
-        if keys[pg.K_q]:
-            ultima_seta['Q'] = 1
-            ultima_seta['E'] = 0
-        if keys[pg.K_e]:
-            ultima_seta['Q'] = 0
-            ultima_seta['E'] = 1
-            
         vezes = False
         escolhida = False
         for seta in setas.keys():
@@ -83,6 +76,7 @@ class Mago:
         
         antigo_x = self.x
         antigo_y = self.y
+
         if escolhida:
             if escolhida == 'RIGHT':
                 self.img = pg.image.load('assets/mago_right.png')

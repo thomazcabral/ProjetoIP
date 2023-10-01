@@ -3,7 +3,7 @@ import sys
 import time
 import random
 from classes.utilidades import *
-from classes import Animais, Parede, Mago, Rio, Projectile, Dragao, functions, Menu
+from classes import Animais, Parede, Mago, Rio, Projectile, Dragao, functions, Menu, Coletaveis
 
 class Engine:
     def __init__(self, config: dict) -> None:
@@ -63,9 +63,18 @@ class Engine:
         self.pontos_animais = {}
 
         self.poderes = {}
+        self.tempo_poder = False
+        self.frames_fogo = []
+        self.num_frames_fogo = 5
         self.num_frames_poder1 = 15
         self.num_frames_poder2 = 8
         self.tipos_poder = 2
+        self.poderes_chao = {
+            'Coletavel 1': 'poder1', #fogo
+            'Coletavel 4': 'tempo',
+            'Coletavel 3': 'vida',
+            'Coletavel 2': 'poder2' #diminui a velocidade do animal
+        }
         self.cooldown = False
         self.cooldown_sprite = False
 
@@ -74,6 +83,7 @@ class Engine:
         self.ratio_vida = self.player_config["vida_padrao"] / 1000
         
         self.cargas = []
+        self.cargas_dragao = []
         self.vida_dragao = 360
 
         self.running = True
@@ -116,11 +126,12 @@ class Engine:
 
         self.create_trees()
         self.spawn_animals()
+        self.create_bridges()
 
         while self.running:
             if not self.game_started:
                 # Mostrar janela do menu
-                self.menu.show_menu(janela)
+                self.menu.show_menu(self.janela)
 
                 # Checar se o jogo deve iniciar
                 if self.menu.start_game:
@@ -128,8 +139,8 @@ class Engine:
             else:
                 variacao_tempo = clock.tick(30)
                 self.align_camera(
-                    largura_camera=pg.display.get_surface().get_width(),
-                    altura_camera=pg.display.get_surface().get_height()
+                    largura_camera=self.camera_config["largura_camera"],
+                    altura_camera=self.camera_config["altura_camera"]
                 )
                 for evento in pg.event.get():
                     if evento.type == pg.QUIT:
@@ -141,28 +152,26 @@ class Engine:
                     self.cooldown_sprite = True
                 
                 if not self.cooldown:
-                    self.check_animal_colision()
-                    self.check_dragon_colision()
-                    self.check_tree_colision()
-                
+                    self.check_power_colision()
+                self.check_dragon_fire_colision()
                 self.try_spawning_dragon()
 
                 keys = pg.key.get_pressed()
 
                 self.render_map()
                 self.render_entities()
+                self.render_trunk()
+                self.render_mage()
+                self.render_leaves()
+                self.render_collectables()
                 self.render_hud()
+                
 
                 self.mago.move(keys, variacao_tempo, setas, ultima_seta, Parede.paredes, Rio.rios)
                 self.move_animal(variacao_tempo)
                 self.move_dragon(variacao_tempo)
-
-                if not self.cooldown:
-                    self.render_projectile(keys, ultima_seta)
-                
-            
-                self.janela.blit(janela, (0,0)) #atualiza o timer e as barras corretamente
-
+    
+                self.janela.blit(self.janela, (0,0)) #atualiza o timer e as barras corretamente
                 pg.display.update()
             
     
@@ -203,6 +212,9 @@ class Engine:
         self.dragon['Dragao']['referencia']['cima'] = cima_dragao
         self.dragon['Dragao']['referencia']['direita'] = direita_dragao
         self.dragon['Dragao']['referencia']['esquerda'] = esquerda_dragao
+
+        for i in range(self.num_frames_fogo):
+            self.frames_fogo.append(pg.image.load(f'assets/fogo{i + 1}.png'))
     
     def load_hud(self) -> None:
         # Carregar fontes e imagens
@@ -389,68 +401,70 @@ class Engine:
         elif self.offset_y + (altura_camera) > self.screen_config["ALTURA_MAPA"]:
             self.offset_y = self.screen_config["ALTURA_MAPA"] - altura_camera
 
-    def check_animal_colision(self):
-        #checando colisão com animais
-        largura_camera = pg.display.get_surface().get_width(),
-        altura_camera = pg.display.get_surface().get_height()
-        for animal in Animais.animais_vivos:
-            for poder in self.cargas:
-                print(largura_camera)
-                if self.offset_x - 40 <= poder.x < largura_camera[0] + self.offset_x:
-                    poder.x += poder.vel_x
-                else:
-                    self.cargas.pop(self.cargas.index(poder))
-                    self.cooldown = True
-                if self.offset_y - 60 <= poder.y < altura_camera + self.offset_y:
-                    poder.y += poder.vel_y
-                else:
-                    self.cargas.pop(self.cargas.index(poder))
-                    self.cooldown = True
+    def check_power_colision(self) -> None:
+        for poder in self.cargas:
+            if self.offset_x - 40 <= self.poder.x < self.camera_config["largura_camera"] + self.offset_x:
+                poder.x += poder.vel_x
+            else:
+                self.cargas.pop(self.cargas.index(poder))
+            if self.offset_y - 60 <= poder.y < self.camera_config["altura_camera"] + self.offset_y:
+                poder.y += poder.vel_y
+            else:
+                self.cargas.pop(self.cargas.index(poder))
+            #checando colisão com animais
+            for animal in Animais.animais_vivos:
                 if functions.colisao_amigavel(poder, animal):
-                    functions.colisao(poder, animal, self.pontos_animais)
+                    functions.colisao_poder(poder, animal, self.pontos_animais)
                     self.cargas.pop(self.cargas.index(poder))
-                    self.cooldown = True
 
-    def check_dragon_colision(self):
-        for dragao in Dragao.dragoes_vivos:
-            for poder in self.cargas:
-                if self.offset_x - 40 <= poder.x < self.camera_config["largura_camera"] + self.offset_x:
-                    poder.x += poder.vel_x
-                else:
-                    self.argas.pop(self.cargas.index(poder))
-                    self.cooldown = True
-                if self.offset_y - 60 <= poder.y < self.camera_config["altura_camera"] + self.offset_y:
-                    poder.y += poder.vel_y
-                else:
-                    self.cargas.pop(self.cargas.index(poder))
-                    self.cooldown = True
+            #checando colisão com animais
+            for dragao in Dragao.dragoes_vivos:
                 if functions.colisao_amigavel(poder, dragao):
-                    self.vida_dragao -= 90
-                    self.vida_dragao = functions.colisao_dragao(poder, dragao, self.vida_dragao)
+                    functions.colisao_dragao(poder, dragao)
                     self.cargas.pop(self.cargas.index(poder))
-                    self.cooldown = True
-    
-    def check_tree_colision(self):
-        for parede in Parede.paredes:
-            for poder in self.cargas:
-                if self.offset_x - 40 <= poder.x < self.camera_config["largura_camera"] + self.offset_x:
-                    poder.x += poder.vel_x
-                else:
-                    self.cargas.pop(self.cargas.index(poder))
-                    self.cooldown = True
-                if self.offset_y - 60 <= poder.y < altura_camera + self.offset_y:
-                    poder.y += poder.vel_y
-                else:
-                    self.cargas.pop(self.cargas.index(poder))
-                    self.cooldown = True
+
+            #checando colisão com paredes        
+            for parede in Parede.paredes:
                 if functions.colisao_amigavel(poder, parede):
                     self.cargas.pop(self.cargas.index(poder))
-                    self.cooldown = True
+    
+    def check_dragon_fire_colision(self):
+        for poder in self.cargas_dragao:
+            if self.offset_x - 40 <= poder.x < self.camera_config["largura_camera"] + self.offset_x:
+                poder.x += poder.vel_x
+            else:
+                self.cargas_dragao.pop(self.cargas_dragao.index(poder))
+            if self.offset_y - 60 <= poder.y < self.camera_config["altura_camera"] + self.offset_y:
+                poder.y += poder.vel_y
+            else:
+                self.cargas_dragao.pop(self.cargas_dragao.index(poder))
+            #checando colisão com animais
+            if functions.colisao_amigavel(poder, self.mago):
+                self.mago.vida -= 250
+                self.cargas_dragao.pop(self.cargas_dragao.index(poder))
+
+            #checando colisão com paredes        
+            for parede in Parede.paredes:
+                if functions.colisao_amigavel(poder, parede):
+                    self.cargas_dragao.pop(self.cargas_dragao.index(poder))
+
     
     def try_spawning_dragon(self):
         if len(Dragao.dragoes_vivos) < 1:
-            dragao = Dragao(self.speed_config["velocidade_padrao"], "Dragao", self.mago, self.vida_dragao, self.dragon)
+            dragao = Dragao(self.speed_config["velocidade_padrao"], "Dragao", self.mago, self.vida_dragao, self.dragon, self.frames_fogo)
             dragao.spawnar(self.mago, Parede.paredes, Rio.rios)
+
+    def render_collectables(self):
+        chance = random.randint(1, 20) #mudar o 200
+        total_poderes = len(Coletaveis.coletaveis_ativos)
+        for coletavel in Coletaveis.coletaveis_ativos:
+            tempo_aumentado = functions.colisao_coleta(self.mago, coletavel)
+            if tempo_aumentado:
+                self.duracao_timer += tempo_aumentado
+        if total_poderes == 0 or (chance == 1 and total_poderes <= 10): 
+            nome = self.poderes_chao[f"Coletavel {random.randint(1,4)}"]
+            coletavel = Coletaveis(nome)
+            coletavel.spawnar(self.mago, Parede.paredes, Rio.rios, Dragao.dragoes_vivos, Animais.animais_vivos, self.offset_x, self.offset_y)
     
     def move_animal(self, variacao_tempo):
         for animal in Animais.animais_vivos:
@@ -463,7 +477,7 @@ class Engine:
     def move_dragon(self, variacao_tempo):
         # Movimentação do dragao
         for dragao in Dragao.dragoes_vivos:
-            dragao.move(self.mago, variacao_tempo, Parede.paredes, Rio.rios, self.speed_config["velocidade_devagar"], self.speed_config["velocidade_rapida"])
+            dragao.move(self.mago, variacao_tempo, Parede.paredes, Rio.rios, self.speed_config["velocidade_devagar"], self.speed_config["velocidade_rapida"], self.cargas_dragao)
 
         # Colisão do dragao com o mago
         for dragao in Dragao.dragoes_vivos:  
@@ -476,22 +490,23 @@ class Engine:
         total_vivos = len(Animais.animais_vivos)
         nenhum = True
         for animal in Animais.animais_vivos:
-            if not (animal.x < self.offset_x -  animal.largura or animal.x >= self.offset_x + self.camera_config["largura_camera"] or animal.y < self.offset_y - animal.altura or animal.y > self.offset_y + altura_camera):
+            if not (animal.x < self.offset_x - animal.largura or animal.x >= self.offset_x + self.camera_config["largura_camera"] or animal.y < self.offset_y - animal.altura or animal.y > self.offset_y + altura_camera):
                 nenhum = False
         if nenhum or total_vivos == 0 or (chance == 1 and total_vivos <= 20): 
             nome = random.choice([j for j in self.animals.keys()])
-            Animais(self.animals, nome, self.mago)
-            for item in Animais.animais_vivos:
-                item.spawnar(self.mago, Parede.paredes, Rio.rios, Dragao.dragoes_vivos, self.offset_x, self.offset_y)
+            new_animal = Animais(self.animals, nome, self.mago)
+            new_animal.spawnar(self.mago, Parede.paredes, Rio.rios, Dragao.dragoes_vivos, self.offset_x, self.offset_y)
         for animal in Animais.animais_vivos:
             animal.desenhar_animal(self.janela, self.offset_x, self.offset_y)
 
         # Renderizar poderes
         if not self.cooldown:
             functions.draw_poder(self.cargas, self.janela, self.offset_x, self.offset_y)
-
-        # Renderizar mago
-        self.mago.desenhar_mago(self.janela, self.offset_x, self.offset_y)
+        functions.draw_poder(self.cargas_dragao, self.janela, self.offset_x, self.offset_y)
+        
+        # Renderizar coletáveis
+        for coletavel in Coletaveis.coletaveis_ativos:
+            coletavel.desenhar_coletavel(self.janela, self.offset_x, self.offset_y)
 
         # Renderizar dragão e sua vida
         for dragao in Dragao.dragoes_vivos: #desenhando o dragao
@@ -503,26 +518,32 @@ class Engine:
             self.janela.blit(fundo_vida_dragao, (dragao.x - 100 - self.offset_x, dragao.y - 45 - self.offset_y))
 
     def render_projectile(self, keys, ultima_seta):
-        if keys[pg.K_SPACE]:
-            if ultima_seta['LEFT'] != 0:
-                facing_x = -1
-                facing_y = 0
-            elif ultima_seta['RIGHT'] != 0:
-                facing_x = 1
-                facing_y = 0
-            elif ultima_seta['UP'] != 0:
-                facing_y = -1
-                facing_x = 0
-            else:
-                facing_y = 1
-                facing_x = 0
-            
-            if len(self.cargas) < 1:
-                if ultima_seta['Q'] != 0 or ultima_seta['Q'] == 0 and ultima_seta['E'] == 0:
-                    self.cargas.append(Projectile(round(self.mago.x + self.mago.largura //2), round(self.mago.y + self.mago.altura//2), 4, facing_x, facing_y, self.poderes['poder1']))
-                if ultima_seta['E'] != 0:
-                    self.cargas.append(Projectile(round(self.mago.x + self.mago.largura //2), round(self.mago.y + self.mago.altura//2), 4, facing_x, facing_y, self.poderes['poder2']))
-
+        if self.mago.poder:
+            if keys[pg.K_SPACE]:
+                if not self.tempo_poder:
+                    self.tempo_poder = 100
+                if self.tempo_poder > 0 and self.cooldown_poder == 0:
+                    self.cooldown_poder = 20
+                    if ultima_seta['LEFT'] != 0:
+                        facing_x = -1
+                        facing_y = 0
+                    elif ultima_seta['RIGHT'] != 0:
+                        facing_x = 1
+                        facing_y = 0
+                    elif ultima_seta['UP'] != 0:
+                        facing_y = -1
+                        facing_x = 0
+                    else:
+                        facing_y = 1
+                        facing_x = 0
+                    self.cargas.append(Projectile(round(self.mago.x + self.mago.largura //2), round(self.mago.y + self.mago.altura//2), 4, facing_x, facing_y, self.mago.poder, self.poderes[self.mago.poder]))
+            if self.tempo_poder:
+                self.tempo_poder -=1
+                if self.cooldown_poder > 0:
+                    cooldown_poder -= 1
+                if self.tempo_poder <= 0:
+                    self.tempo_poder = False
+                    self.mago.poder = False
 
     def render_map(self):
         largura_mapa = self.screen_config["LARGURA_MAPA"]
@@ -534,14 +555,25 @@ class Engine:
             for y in range(0, altura_mapa, 50):
                 if (x, y) in self.enfeites.keys():
                     self.janela.blit(self.desenho_enfeites[self.enfeites[(x, y)][0] - 1], (self.enfeites[(x, y)][1][0] - self.offset_x, self.enfeites[(x, y)][1][1] - self.offset_y))
-
+    
+    def render_trunk(self):
         for tree in Parede.paredes:
             tree.desenhar_tronco(self.offset_x, self.offset_y)
-            tree.desenhar_folhas(self.offset_x, self.offset_y)
-    
-    def render_hud(self):
-        self.janela.blit(self.hud, (-200, self.camera_config["altura_camera"] - 60))
+        
+    def render_mage(self):
+        self.mago.desenhar_mago(self.janela, self.offset_x, self.offset_y)
 
+    def render_leaves(self):
+        for tree in Parede.paredes:
+            tree.desenhar_folhas(self.offset_x, self.offset_y)
+      
+    def render_hud(self):
+
+        self.ratio_stamina = self.mago.stamina / 1000
+        self.ratio_habilidade = self.mago.cooldown_habilidade / 270
+        self.ratio_vida = self.mago.vida / 1000
+
+        self.janela.blit(self.hud, (-200, self.camera_config["altura_camera"] - 60))
          #Fundo barra de stamina
         pg.draw.rect(
             self.janela, 
@@ -588,7 +620,7 @@ class Engine:
                 self.x_barras + 1, 
                 self.y_barra_vida, 
                 (self.hud_config["largura_barra"] - 2) * self.ratio_vida, 
-                self.hud_config["altura_barra"]
+                self.hud_config["altura_barra"] - 11
             ), 
             border_radius=self.hud_config["raio_borda"]
         )
@@ -649,7 +681,7 @@ class Engine:
             self.hud_config["espessura"], 
             border_radius=self.hud_config["raio_borda"]
         )
-
+        
         tempo_atual = time.time()
         tempo_passado = tempo_atual - self.comeco_timer
         tempo_restante = max(0, self.duracao_timer - tempo_passado) #evite com que o timer dê errado quando acabe
@@ -670,6 +702,10 @@ class Engine:
                 contador = self.fonte_contador.render(f'x{self.pontos_animais[animal]}', True, self.color_config["BRANCO"]) 
             self.janela.blit(contador, (x_inicial + 27, altura_camera - 57))
             x_inicial -= 100
+        
+        
+        
+        
 
 
  
