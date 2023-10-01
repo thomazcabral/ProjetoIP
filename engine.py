@@ -99,7 +99,7 @@ class Engine:
         self.y_barra_habilidade = self.y_barra_vida - 9
 
         self.duracao_timer = 60 
-        self.comeco_timer = time.time() 
+        self.tempo_restante = 60
 
     def run(self) -> None:
         
@@ -136,8 +136,11 @@ class Engine:
 
                 # Checar se o jogo deve iniciar
                 if self.menu.start_game:
+                    self.comeco_timer = time.time() 
                     self.game_started = True  # Iniciou
             else:
+                if self.tempo_restante <= 0:
+                    self.running = False
                 variacao_tempo = clock.tick(30)
                 self.align_camera(
                     largura_camera=self.camera_config["largura_camera"],
@@ -160,12 +163,12 @@ class Engine:
                 keys = pg.key.get_pressed()
 
                 self.render_map()
+                self.render_collectables()
                 self.render_entities()
                 self.render_projectile(keys, ultima_seta)
                 self.render_trunk()
                 self.render_mage()
                 self.render_leaves()
-                self.render_collectables()
                 self.render_dragon()
                 self.render_hud()
                 
@@ -689,8 +692,8 @@ class Engine:
         
         tempo_atual = time.time()
         tempo_passado = tempo_atual - self.comeco_timer
-        tempo_restante = max(0, self.duracao_timer - tempo_passado) #evite com que o timer dê errado quando acabe
-        minutos, segundos = divmod(int(tempo_restante), 60) #faz a divisão correta entre minutos e segundos
+        self.tempo_restante = max(0, self.duracao_timer - tempo_passado) #evite com que o timer dê errado quando acabe
+        minutos, segundos = divmod(int(self.tempo_restante), 60) #faz a divisão correta entre minutos e segundos
         texto_timer = self.fonte_tempo.render(f'Tempo: {minutos:02d}:{segundos:02d}', True, self.color_config["BRANCO"]) #texto, situação de aparecimento, cor
         janela.blit(texto_timer, (self.camera_config["largura_camera"] - texto_timer.get_width() - 15, self.camera_config["altura_camera"] - 50))
         x_inicial = self.camera_config["largura_camera"] - texto_timer.get_width() - 150
