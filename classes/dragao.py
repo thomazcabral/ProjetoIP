@@ -125,20 +125,27 @@ class Dragao(pg.sprite.Sprite):
                     self.direcao = 'direita'
                     facing_x = 1
                     facing_y = 0
+                if self.cooldown == 0:
+                        cargas_dragao.append(Projectile(round(self.x + self.largura //2), round(self.y + self.altura//1.5), 4, facing_x, facing_y, mago.poder, self.frames_poder))
+                        self.estado = 'parado'
+                        self.cooldown = 50
             else:
                 if distancia_y < 0:
                     self.direcao = 'cima'
                     facing_y = -1
                     facing_x = 0
+                    if self.cooldown == 0:
+                        cargas_dragao.append(Projectile(round(self.x + self.largura //2.5), round(self.y + self.altura//2), 4, facing_x, facing_y, mago.poder, self.frames_poder))
+                        self.estado = 'parado'
+                        self.cooldown = 50
                 else:
                     self.direcao = 'baixo'
                     facing_y = 1
                     facing_x = 0
-                    
-            if self.cooldown == 0:
-                cargas_dragao.append(Projectile(round(self.x + self.largura //2), round(self.y + self.altura//2), 4, facing_x, facing_y, mago.poder, self.frames_poder))
-                self.estado = 'parado'
-                self.cooldown = 50
+                    if self.cooldown == 0:
+                        cargas_dragao.append(Projectile(round(self.x + self.largura // 2), round(self.y + self.altura//2), 4, facing_x, facing_y, mago.poder, self.frames_poder))
+                        self.estado = 'parado'
+                        self.cooldown = 50
         
         if self.cooldown > 0:
             self.cooldown -= 1
