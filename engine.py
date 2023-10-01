@@ -166,6 +166,7 @@ class Engine:
                 self.render_mage()
                 self.render_leaves()
                 self.render_collectables()
+                self.render_dragon()
                 self.render_hud()
                 
 
@@ -214,6 +215,9 @@ class Engine:
         self.dragon['Dragao']['referencia']['cima'] = cima_dragao
         self.dragon['Dragao']['referencia']['direita'] = direita_dragao
         self.dragon['Dragao']['referencia']['esquerda'] = esquerda_dragao
+
+        self.barra_vida_dragao = pg.transform.smoothscale(pg.image.load('assets/vida_dragao.png'), (self.vida_dragao , 18))
+        self.fundo_vida_dragao = pg.transform.smoothscale(pg.image.load('assets/vida_dragao_fundo.png'), (360, 20))
 
         for i in range(self.num_frames_fogo):
             self.frames_fogo.append(pg.image.load(f'assets/fogo{i + 1}.png'))
@@ -509,15 +513,14 @@ class Engine:
         # Renderizar coletáveis
         for coletavel in Coletaveis.coletaveis_ativos:
             coletavel.desenhar_coletavel(self.janela, self.offset_x, self.offset_y)
-
+    
+    def render_dragon(self):
         # Renderizar dragão e sua vida
         for dragao in Dragao.dragoes_vivos: #desenhando o dragao
             dragao.desenhar_dragao(janela, self.offset_x, self.offset_y)
-        barra_vida_dragao = pg.transform.smoothscale(pg.image.load('assets/vida_dragao.png'), (self.vida_dragao , 18))
-        fundo_vida_dragao = pg.transform.smoothscale(pg.image.load('assets/vida_dragao_fundo.png'), (360, 20))
         for dragao in Dragao.dragoes_vivos:
-            self.janela.blit(barra_vida_dragao, (dragao.x - 100 - self.offset_x, dragao.y - 45 - self.offset_y))
-            self.janela.blit(fundo_vida_dragao, (dragao.x - 100 - self.offset_x, dragao.y - 45 - self.offset_y))
+            self.janela.blit(self.barra_vida_dragao, (dragao.x - 100 - self.offset_x, dragao.y - 45 - self.offset_y))
+            self.janela.blit(self.fundo_vida_dragao, (dragao.x - 100 - self.offset_x, dragao.y - 45 - self.offset_y))
 
     def render_projectile(self, keys, ultima_seta):
         if self.mago.poder:
