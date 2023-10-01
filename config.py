@@ -1,3 +1,10 @@
+import pygame as pg
+info = pg.display.Info()
+
+# Retrieve the screen width and height
+screen_width = info.current_w
+screen_height = info.current_h
+
 global_config = {
     "color_config": {
         "BRANCO": (255, 255, 255),
@@ -17,8 +24,8 @@ global_config = {
         "tela_cheia": False,
     },
     "camera_config": {
-        "largura_camera": 1280,
-        "altura_camera": 720,
+        "largura_camera": screen_width,
+        "altura_camera": screen_height,
     },
     "animal_config": {
         "num_animais": 3,
