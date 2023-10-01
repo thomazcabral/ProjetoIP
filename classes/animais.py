@@ -1,11 +1,12 @@
 import pygame as pg
 import random
-from .utilidades import *
 from .dragao import *
+from .functions import *
 
 class Animais(pg.sprite.Sprite):
     # Responsável por cada animal vivo
     animais_vivos = []
+    animais_mortos = []
 
     def __init__(self, infos, nome, instancia_mago):
         super().__init__()
@@ -29,7 +30,9 @@ class Animais(pg.sprite.Sprite):
         self.mago = instancia_mago
         self.estagio = 0
         self.encurralado = False
-
+        self.congelado = 0
+        self.velocidade_animacao_padrao = 0.25
+        self.velocidade_animacao = self.velocidade_animacao_padrao
         Animais.animais_vivos.append(self)
 
     def spawnar(self, mago, paredes, rios, dragao, offset_x, offset_y):
@@ -49,12 +52,14 @@ class Animais(pg.sprite.Sprite):
                         if animal != self and ((animal.x + (animal.largura / 2) - valorx) ** 2 + (animal.y + (animal.altura / 2) - valory)** 2) ** (1/2) < animal.raio:
                             escolher = False
                     except:
+                        """ NAO TIRE ESSE TRY EXCEPT JAMAIS """
                         continue
-
                 bloqueio = []
                 for k in paredes:
                     bloqueio.append(k)
                 for k in rios:
+                    bloqueio.append(k)
+                for k in dragao:
                     bloqueio.append(k)
                 for bloqueador in bloqueio:
                     if colisao_amigavel(self, bloqueador):
@@ -104,24 +109,31 @@ class Animais(pg.sprite.Sprite):
                     self.direcao = 'baixo'
                 else:
                     self.direcao = 'cima'
-
+        
+        if self.congelado >= 0:
+            self.velocidade = self.velocidade_idle / 2
+            self.congelado -= 1
+            self.velocidade_animacao = self.velocidade_animacao_padrao / 2
+        else:
+            self.velocidade_animacao = self.velocidade_animacao_padrao
+        
         if self.direcao == 'direita':
             self.x += self.velocidade * variacao_tempo
-            self.estagio += 0.25
+            self.estagio += self.velocidade_animacao
             self.img = self.direita[int(self.estagio % 3)]
         elif self.direcao == 'esquerda':
-            self.estagio += 0.25
+            self.estagio += self.velocidade_animacao
             self.img = self.esquerda[int(self.estagio % 3)]
             self.x -= self.velocidade * variacao_tempo
         elif self.direcao == 'baixo':
-            self.estagio += 0.25
+            self.estagio += self.velocidade_animacao
             self.img = self.baixo[int(self.estagio % 3)]
             self.y += self.velocidade * variacao_tempo
         elif self.direcao == 'cima':
-            self.estagio += 0.25
+            self.estagio += self.velocidade_animacao
             self.img = self.cima[int(self.estagio % 3)]
             self.y -= self.velocidade * variacao_tempo
-        if self.estagio == 3:
+        if self.estagio >= 3:
             self.estagio = 0
         bloqueio = []
         horizontal = ['esquerda', 'direita']
