@@ -15,7 +15,7 @@ class Dragao(pg.sprite.Sprite):
         self.nome = nome
         self.velocidade_padrao = velocidade_padrao
         self.velocidade = 0
-        self.raio = 300 # caso o raio do dragão for diferente do raio dos outros animais, talvez exista um problema na colisão entre eles
+        self.raio = 600 # caso o raio do dragão for diferente do raio dos outros animais, talvez exista um problema na colisão entre eles
         self.vida = vida
         self.direcao = 'baixo'
         self.esquerda = frames_dragao['Dragao']['referencia']['esquerda']
@@ -74,18 +74,19 @@ class Dragao(pg.sprite.Sprite):
         antigo_y = self.y
         
         if self.estado == 'parado' and ((distancia_x)**2 + (distancia_y)**2)**(1/2) <= raio_alerta:
-            self.velocidade = self.velocidade_padrao
-            if abs(distancia_x) > abs(distancia_y):
-                if distancia_x < 0:
-                    self.direcao = 'esquerda'
+            if ((abs(distancia_x) > 5 and abs(distancia_y) > 5)):
+                self.velocidade = self.velocidade_padrao
+                if abs(distancia_x) < abs(distancia_y):
+                    if distancia_x < 0:
+                        self.direcao = 'esquerda'
+                    else:
+                        self.direcao = 'direita'
                 else:
-                    self.direcao = 'direita'
-            else:
-                if distancia_y < 0:
-                    self.direcao = 'cima'
-                else:
-                    self.direcao = 'baixo'
-            self.estado = 'andando'
+                    if distancia_y < 0:
+                        self.direcao = 'cima'
+                    else:
+                        self.direcao = 'baixo'
+                self.estado = 'andando'
         elif ((distancia_x)**2 + (distancia_y)**2)**(1/2) > raio_alerta:
             self.velocidade = 0
             self.estado = 'parado'
@@ -116,7 +117,7 @@ class Dragao(pg.sprite.Sprite):
         
         if self.estado == 'atirando':
             self.velocidade = 0
-            if abs(distancia_x) > abs(distancia_y):
+            if abs(distancia_x)  > abs(distancia_y):
                 if distancia_x < 0:
                     self.direcao = 'esquerda'
                     facing_x = -1
@@ -125,20 +126,27 @@ class Dragao(pg.sprite.Sprite):
                     self.direcao = 'direita'
                     facing_x = 1
                     facing_y = 0
+                if self.cooldown == 0:
+                        cargas_dragao.append(Projectile(round(self.x + self.largura //2), round(self.y + self.altura//1.5), 4, facing_x, facing_y, mago.poder, self.frames_poder))
+                        self.estado = 'parado'
+                        self.cooldown = 50
             else:
                 if distancia_y < 0:
                     self.direcao = 'cima'
                     facing_y = -1
                     facing_x = 0
+                    if self.cooldown == 0:
+                        cargas_dragao.append(Projectile(round(self.x + self.largura //2.5), round(self.y + self.altura//2), 4, facing_x, facing_y, mago.poder, self.frames_poder))
+                        self.estado = 'parado'
+                        self.cooldown = 50
                 else:
                     self.direcao = 'baixo'
                     facing_y = 1
                     facing_x = 0
-                    
-            if self.cooldown == 0:
-                cargas_dragao.append(Projectile(round(self.x + self.largura //2), round(self.y + self.altura//2), 4, facing_x, facing_y, mago.poder, self.frames_poder))
-                self.estado = 'parado'
-                self.cooldown = 50
+                    if self.cooldown == 0:
+                        cargas_dragao.append(Projectile(round(self.x + self.largura // 2), round(self.y + self.altura//2), 4, facing_x, facing_y, mago.poder, self.frames_poder))
+                        self.estado = 'parado'
+                        self.cooldown = 50
         
         if self.cooldown > 0:
             self.cooldown -= 1

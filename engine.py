@@ -163,10 +163,10 @@ class Engine:
                 keys = pg.key.get_pressed()
 
                 self.render_map()
+                self.render_trunk()
                 self.render_collectables()
                 self.render_entities()
                 self.render_projectile(keys, ultima_seta)
-                self.render_trunk()
                 self.render_mage()
                 self.render_leaves()
                 self.render_dragon()
