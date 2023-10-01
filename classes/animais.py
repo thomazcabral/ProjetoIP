@@ -56,8 +56,6 @@ class Animais(pg.sprite.Sprite):
                     bloqueio.append(k)
                 for k in rios:
                     bloqueio.append(k)
-                for k in dragao:
-                    bloqueio.append(k)
                 for bloqueador in bloqueio:
                     if colisao_amigavel(self, bloqueador):
                         escolher = False
@@ -134,8 +132,6 @@ class Animais(pg.sprite.Sprite):
         for k in paredes:
             bloqueio.append(k)
         for k in rios:
-            bloqueio.append(k)
-        for k in dragao:
             bloqueio.append(k)
         for coisa in bloqueio:
             if colisao_amigavel(self, coisa):

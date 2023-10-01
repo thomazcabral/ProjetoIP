@@ -70,8 +70,6 @@ class Dragao(pg.sprite.Sprite):
             raio_alerta = raio_alerta / 1.5
         distancia_x = (mago.x + mago.largura / 2) -  (self.x + self.largura/2)
         distancia_y = (mago.y)  - (self.y + self.altura/ 2)
-        antigo_x = self.x
-        antigo_y = self.y
         
         if self.estado == 'parado' and ((distancia_x)**2 + (distancia_y)**2)**(1/2) <= raio_alerta:
             if ((abs(distancia_x) > 5 and abs(distancia_y) > 5)):
@@ -150,12 +148,4 @@ class Dragao(pg.sprite.Sprite):
         
         if self.cooldown > 0:
             self.cooldown -= 1
-            
-        bloqueio = []
-        for k in Dragao.dragoes_vivos:
-            if k != self:
-                bloqueio.append(k)
-        for animal in bloqueio:
-            if colisao_amigavel(self, animal):
-                self.x = antigo_x
-                self.y = antigo_y
+    
