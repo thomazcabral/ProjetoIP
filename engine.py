@@ -63,6 +63,7 @@ class Engine:
         self.pontos_animais = {}
 
         self.poderes = {}
+        self.cooldown_poder = 0
         self.tempo_poder = False
         self.frames_fogo = []
         self.num_frames_fogo = 5
@@ -160,6 +161,7 @@ class Engine:
 
                 self.render_map()
                 self.render_entities()
+                self.render_projectile(keys, ultima_seta)
                 self.render_trunk()
                 self.render_mage()
                 self.render_leaves()
@@ -403,7 +405,7 @@ class Engine:
 
     def check_power_colision(self) -> None:
         for poder in self.cargas:
-            if self.offset_x - 40 <= self.poder.x < self.camera_config["largura_camera"] + self.offset_x:
+            if self.offset_x - 40 <= poder.x < self.camera_config["largura_camera"] + self.offset_x:
                 poder.x += poder.vel_x
             else:
                 self.cargas.pop(self.cargas.index(poder))
@@ -540,7 +542,7 @@ class Engine:
             if self.tempo_poder:
                 self.tempo_poder -=1
                 if self.cooldown_poder > 0:
-                    cooldown_poder -= 1
+                    self.cooldown_poder -= 1
                 if self.tempo_poder <= 0:
                     self.tempo_poder = False
                     self.mago.poder = False
