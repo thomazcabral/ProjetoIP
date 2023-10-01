@@ -105,7 +105,7 @@ class Engine:
         
         pg.init()
         clock = pg.time.Clock()
-        self.janela = pg.display.set_mode((self.camera_config["largura_camera"], self.camera_config["altura_camera"]))
+        self.janela = pg.display.set_mode((self.camera_config["largura_camera"], self.camera_config["altura_camera"]), pg.FULLSCREEN)
 
         self.load_hud()
         self.load_animals()
@@ -457,7 +457,7 @@ class Engine:
             dragao.spawnar(self.mago, Parede.paredes, Rio.rios)
 
     def render_collectables(self):
-        chance = random.randint(1, 20) #mudar o 200
+        chance = random.randint(1, 150) #mudar o 200
         total_poderes = len(Coletaveis.coletaveis_ativos)
         for coletavel in Coletaveis.coletaveis_ativos:
             tempo_aumentado = functions.colisao_coleta(self.mago, coletavel)
