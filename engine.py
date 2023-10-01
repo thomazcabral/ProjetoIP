@@ -476,7 +476,7 @@ class Engine:
         for animal in Animais.animais_vivos:
             animal.move(self.mago, variacao_tempo, Parede.paredes, Rio.rios, Dragao.dragoes_vivos, self.speed_config["velocidade_devagar"], self.speed_config["velocidade_rapida"])
         # Colisão com as bordas
-        self.mago = functions.borda(self.mago, self.screen_config["ALTURA_MAPA"], self.screen_config["LARGURA_MAPA"])
+        self.mago = functions.borda(self.mago, self.screen_config["LARGURA_MAPA"], self.screen_config["ALTURA_MAPA"])
         for animal in Animais.animais_vivos: 
             animal = functions.colisao(self.mago, animal, self.pontos_animais)
     
