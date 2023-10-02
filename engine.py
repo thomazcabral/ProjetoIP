@@ -516,6 +516,8 @@ class Engine:
             #checando colisão com animais
             if functions.colisao_amigavel(poder, self.mago):
                 self.mago.vida -= 250
+                if self.mago.vida < 0:
+                    self.mago.vida = 0
                 self.cargas_dragao.pop(self.cargas_dragao.index(poder))
 
             #checando colisão com paredes 
