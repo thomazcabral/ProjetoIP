@@ -116,10 +116,10 @@ class Mago:
             self.velocidade = 0.1
         if keys[pg.K_LCTRL] and escolhida:
             if self.stamina >= 1 and self.cansaco == 0:
-                self.stamina -= 10
+                self.stamina -= 7
                 self.velocidade = 0.15
                 if self.stamina <= 20:
-                    self.cansaco = 200
+                    self.cansaco = 100
             elif self.cansaco >= 0:
                 self.stamina += 0.65
         elif self.stamina < stamina_padrao:

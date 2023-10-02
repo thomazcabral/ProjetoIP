@@ -56,7 +56,6 @@ class GameoverMenu:
             else:
                 contador = f'{self.engine.pontos_animais[animal]}'
             self.buttons_value_list.append(contador)
-        print(self.engine.pontos_animais.keys())
 
         self.animal1 = Button(self.buttons_value_list[2], self.screen.get_width() // 2, button_y)
         self.animal2 = Button(self.buttons_value_list[1], self.screen.get_width() // 2, button_y + button_spacing)
