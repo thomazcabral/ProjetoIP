@@ -1,3 +1,5 @@
+import pygame as pg
+
 # Colisão com as bordas
 def borda(variavel, width, height):
     if variavel.x < 0:
@@ -13,14 +15,20 @@ def borda(variavel, width, height):
 
 # Colisão do player com os animais
 def colisao_poder(poder, animal, pontos_animais): #desacelerar e matar
+    congelado = pg.mixer.Sound('assets/congelado.mp3')
+    poof_sound = pg.mixer.Sound('assets/poof_sound.mp3')
     if colisao_amigavel(poder, animal):
             if poder.nome == 'poder1':
+                pg.mixer.Sound.play(poof_sound)
                 colisao(poder, animal, pontos_animais)
             elif poder.nome == 'poder2':
+                pg.mixer.Sound.play(congelado)
                 animal.congelado = 30
 
 def colisao(mago, animal, pontos_animais):
+    poof_sound = pg.mixer.Sound('assets/poof_sound.mp3')
     if colisao_amigavel(animal, mago):
+                pg.mixer.Sound.play(poof_sound)
                 animal.morte()
                 pontos_animais[animal.nome] += 1
 
@@ -36,7 +44,9 @@ def colisao_amigavel(objeto1, objeto2):
         return True
 
 def colisao_coleta(mago, objeto):
+    coleta = pg.mixer.Sound('assets/coletavel.mp3')
     if colisao_amigavel(mago, objeto):
+        pg.mixer.Sound.play(coleta)
         if objeto.nome == 'vida':
             mago.vida += 100
             if mago.vida >= 1000:

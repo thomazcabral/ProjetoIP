@@ -63,6 +63,7 @@ class Dragao(pg.sprite.Sprite):
         Dragao.dragoes_vivos.remove(self)
     
     def move(self, mago, variacao_tempo, paredes, rios, velocidade_devagar, velocidade_rapida, cargas_dragao):
+        atirando = pg.mixer.Sound('assets/dragao_atirando.mp3')
         raio_alerta = mago.raio
         if mago.velocidade == velocidade_rapida:
             raio_alerta = raio_alerta * 1.5
@@ -114,6 +115,7 @@ class Dragao(pg.sprite.Sprite):
             self.estado = 'atirando'
         
         if self.estado == 'atirando':
+            pg.mixer.Sound.play(atirando)
             self.velocidade = 0
             if abs(distancia_x)  > abs(distancia_y):
                 if distancia_x < 0:
@@ -127,7 +129,7 @@ class Dragao(pg.sprite.Sprite):
                 if self.cooldown == 0:
                         cargas_dragao.append(Projectile(round(self.x + self.largura //2), round(self.y + self.altura//1.5), 4, facing_x, facing_y, mago.poder, self.frames_poder))
                         self.estado = 'parado'
-                        self.cooldown = 50
+                        self.cooldown = 45
             else:
                 if distancia_y < 0:
                     self.direcao = 'cima'
@@ -136,7 +138,7 @@ class Dragao(pg.sprite.Sprite):
                     if self.cooldown == 0:
                         cargas_dragao.append(Projectile(round(self.x + self.largura //2.5), round(self.y + self.altura//2), 4, facing_x, facing_y, mago.poder, self.frames_poder))
                         self.estado = 'parado'
-                        self.cooldown = 50
+                        self.cooldown = 45
                 else:
                     self.direcao = 'baixo'
                     facing_y = 1
@@ -144,7 +146,7 @@ class Dragao(pg.sprite.Sprite):
                     if self.cooldown == 0:
                         cargas_dragao.append(Projectile(round(self.x + self.largura // 2), round(self.y + self.altura//2), 4, facing_x, facing_y, mago.poder, self.frames_poder))
                         self.estado = 'parado'
-                        self.cooldown = 50
+                        self.cooldown = 45
         
         if self.cooldown > 0:
             self.cooldown -= 1
