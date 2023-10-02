@@ -1,4 +1,5 @@
 import pygame as pg
+import os
 import sys
 import time
 import random
@@ -127,6 +128,7 @@ class Engine:
         self.tempo_restante = 60
         self.janela = pg.display.set_mode((self.camera_config["largura_camera"], self.camera_config["altura_camera"]), pg.FULLSCREEN)
         pg.init()
+        pg.mixer.init()
 
     def run(self) -> None:
         self.should_restart = False
@@ -635,8 +637,10 @@ class Engine:
             animacao.rodar(janela, self.offset_x, self.offset_y)
 
     def render_projectile(self, keys, ultima_seta):
+        magia = pg.mixer.Sound('assets/magia.wav')
         if self.mago.poder:
             if keys[pg.K_SPACE]:
+                pg.mixer.Sound.play(magia)
                 if not self.tempo_poder:
                     self.tempo_poder = 100
                 if self.tempo_poder > 0 and self.cooldown_poder == 0:
@@ -908,6 +912,7 @@ class Engine:
         Parede.paredes = []
         Animais.animais_vivos = []
         Animais.animais_mortos = []
+        self.dragon_kills = 0
         Coletaveis.coletaveis_ativos = []
         Dragao.dragoes_vivos = []
         self.cargas_dragao = []
