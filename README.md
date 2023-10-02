@@ -190,6 +190,10 @@ class Mago:
 
 [Menu de informações do jogo](https://stock.adobe.com/br/images/pixel-art-wood-style-button-for-game-and-app-interface-vector-icon-for-8bit-game-on-white-background/512472259)
 
+[Sons](https://mixkit.co/free-sound-effects/magic/?page=2)
+
+[Mais sons](https://audiojungle.net/item/ice-crackling/23170883?s_rank=1)
+
 
 ## Capturas de tela
 
