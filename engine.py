@@ -75,6 +75,7 @@ class Engine:
 
         self.num_arvores = random.randint(10, 30)
         self.ponte = False
+        self.ponte_dupla = False
 
         self.pontos_animais = {
             'Animal 1': 0,
@@ -105,7 +106,8 @@ class Engine:
         self.ratio_vida = self.player_config["vida_padrao"] / 1000
         
         self.cargas = []
-        self.cargas_hud = []
+        self.cargas_poder1_hud = []
+        self.cargas_poder2_hud = []
         self.cargas_dragao = []
         self.vida_dragao = 120
 
@@ -437,7 +439,6 @@ class Engine:
                     if (bloco.x - 100, bloco.y) == (rio.x, rio.y) or (bloco.x + 100, bloco.y) == (rio.x, rio.y):
                         self.ponte = False
                 if self.ponte:
-                    print("AAAAAAAAAAAAAAAAAAA")
                     bloco.construir_ponte(self.mapa)
 
     def spawn_animals(self) -> None:
@@ -535,7 +536,7 @@ class Engine:
             dragao.spawnar(self.mago, Parede.paredes, Rio.rios,  self.screen_config["LARGURA_MAPA"], self.screen_config["ALTURA_MAPA"])
 
     def render_collectables(self):
-        chance = random.randint(1, 10) #mudar o 200
+        chance = random.randint(1, 7) #mudar o 200
         total_poderes = len(Coletaveis.coletaveis_ativos)
         for coletavel in Coletaveis.coletaveis_ativos:
             tempo_aumentado = functions.colisao_coleta(self.mago, coletavel)
@@ -781,10 +782,60 @@ class Engine:
         poder_atual = self.fonte_tempo.render('Poder atual:', True, self.color_config["BRANCO"]) #texto, situação de aparecimento, cor
         janela.blit(poder_atual, (self.camera_config["largura_camera"] - poder_atual.get_width() - 900, self.camera_config["altura_camera"] - 45))
         
-        if self.mago.poder:
-            if len(self.cargas_hud) < 1:
-                self.cargas_hud.append(Projectile_hud(self.mago.poder, self.poderes[self.mago.poder]))
-            functions.draw_poder_hud(self.cargas_hud, self.janela)
+        if self.mago.poder == "poder1":
+            if len(self.cargas_poder1_hud) < 1:
+                self.cargas_poder1_hud.append(Projectile_hud(self.mago.poder, self.poderes["poder1"]))
+            functions.draw_poder_hud(self.cargas_poder1_hud, self.janela)
+
+            if self.tempo_poder == 0:
+                barra_poder_largura = 100
+            else:
+                barra_poder_largura = self.tempo_poder
+
+            pg.draw.rect(
+                self.janela, 
+                self.color_config["CINZA"], 
+                (   
+                    380, 
+                    710, 
+                    100, 
+                    10
+                ), 
+                border_radius=self.hud_config["raio_borda"]
+            )
+            
+            pg.draw.rect(
+                self.janela, 
+                self.color_config["AZUL"], 
+                (
+                    380, 
+                    710, 
+                    barra_poder_largura, 
+                    10
+                ), 
+                border_radius=self.hud_config["raio_borda"]
+            )
+
+            pg.draw.rect(
+                self.janela, 
+                self.color_config["MARROM_ESCURO"], 
+                (
+                    380, 
+                    710, 
+                    100, 
+                    10
+                ), 
+                self.hud_config["espessura"], 
+                border_radius=self.hud_config["raio_borda"]
+            )
+        
+        else:
+            self.cargas_poder1_hud = []
+
+        if self.mago.poder == "poder2":
+            if len(self.cargas_poder2_hud) < 1:
+                self.cargas_poder2_hud.append(Projectile_hud(self.mago.poder, self.poderes["poder2"]))
+            functions.draw_poder_hud(self.cargas_poder2_hud, self.janela)
 
             if self.tempo_poder == 0:
                 barra_poder_largura = 100
@@ -829,7 +880,7 @@ class Engine:
             )
             
         else:
-            self.cargas_hud = []
+            self.cargas_poder2_hud = []
         
         #Timer e contadores
         tempo_atual = time.time()
