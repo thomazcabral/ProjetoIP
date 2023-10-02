@@ -174,7 +174,23 @@ class Mago:
 4. **Dificuldades com Pixel Art:** A criação de pixel art se revelou uma tarefa desafiadora para nossa equipe. Encontrar recursos adequados, como tutoriais e ferramentas especializadas, foi um obstáculo, e muitos de nós não tinham experiência prévia nessa área. Como resultado, o processo de criação foi bem mais demorado do que o esperado.
 5. **Aplicação de conceitos:** Outro desafio que enfrentamos foi a necessidade de aplicar todos os conceitos e habilidades que havíamos aprendido ao longo do semestre. Embora tivéssemos abordado diferentes aspectos do projeto separadamente, integrar todos os elementos em um produto final foi complexo. Isso exigiu um esforço adicional para garantir que todas as partes funcionassem em conjunto de maneira adequada.
 
-A ser adicionado
+## Links importantes
+
+[Animação dos animais aparecendo e desaparecendo](https://nyknck.itch.io/fx062)
+
+[Árvores, enfeites e detalhes do mapa](https://cupnooble.itch.io/sprout-lands-asset-pack)
+
+[Animações dos poderes](https://bdragon1727.itch.io/fire-pixel-bullet-16x16)
+
+[Animações do mago](https://flandrescarlet64.itch.io/16x16-16-bits-top-down-mage-character)
+
+[Animações dos animais](https://www.rpgmakercentral.com/topic/2399-grannys-lists-animal-sprites/)
+
+[Animações do dragão](https://br.pinterest.com/pin/811351689095548879/)
+
+[Menu de informações do jogo](https://stock.adobe.com/br/images/pixel-art-wood-style-button-for-game-and-app-interface-vector-icon-for-8bit-game-on-white-background/512472259)
+
+
 ## Capturas de tela
 
 <p align="center">
