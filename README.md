@@ -3,7 +3,7 @@
 
 Projeto que consiste em um jogo 2d criado por meio da linguagem Python e da biblioteca Pygame. Disciplina de Introdução à Programação (IP), ofertada no Centro de Informática (CIn) da Universidade Federal de Pernambuco (UFPE).
 
-
+This project description is also available in english in the "README_english.md" file in this repository.
 
 
 ## Funcionamento do jogo
